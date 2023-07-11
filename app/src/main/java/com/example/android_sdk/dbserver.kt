@@ -19,10 +19,10 @@ fun setConfiguration(databaseUrl: String, databaseUsername: String, databasePass
 
 class DBConnector() {
     // Access the configuration values from MyOtherClass or any other class
-    val databaseUrl = ConfigHolder.databaseUrl
-    val databaseUsername = ConfigHolder.databaseUsername
-    val databasePassword = ConfigHolder.databasePassword
-    val databaseDriverClassName = ConfigHolder.databaseDriverClassName
+    var databaseUrl = ConfigHolder.databaseUrl
+    var databaseUsername = ConfigHolder.databaseUsername
+    var databasePassword = ConfigHolder.databasePassword
+    var databaseDriverClassName = ConfigHolder.databaseDriverClassName
 
     private var connection: Connection? = null
 
@@ -36,6 +36,10 @@ class DBConnector() {
                     properties.getProperty("databaseUsername"),
                     properties.getProperty("databasePassword"),
                     properties.getProperty("databaseDriverClassName"))
+                databaseUrl = ConfigHolder.databaseUrl
+                databaseUsername = ConfigHolder.databaseUsername
+                databasePassword = ConfigHolder.databasePassword
+                databaseDriverClassName = ConfigHolder.databaseDriverClassName
             }
             Class.forName(databaseDriverClassName)
             connection = DriverManager.getConnection(databaseUrl, databaseUsername, databasePassword)
