@@ -1,6 +1,7 @@
 package com.example.android_sdk
 
 import java.sql.*
+import java.util.*
 
 object ConfigHolder {
     lateinit var databaseUrl: String
@@ -22,6 +23,18 @@ class DBConnector() {
     val databaseUsername = ConfigHolder.databaseUsername
     val databasePassword = ConfigHolder.databasePassword
     val databaseDriverClassName = ConfigHolder.databaseDriverClassName
+
+    init {
+        if (databaseUrl == null) {
+            val properties = Properties()
+            val configFile = javaClass.classLoader.getResourceAsStream("config.properties")
+            properties.load(configFile)
+            setConfiguration(properties.getProperty("databaseUrl"),
+                properties.getProperty("databaseUsername"),
+                properties.getProperty("databasePassword"),
+                properties.getProperty("databaseDriverClassName"))
+        }
+    }
 
     private var connection: Connection? = null
 
