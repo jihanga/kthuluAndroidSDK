@@ -24,22 +24,19 @@ class DBConnector() {
     val databasePassword = ConfigHolder.databasePassword
     val databaseDriverClassName = ConfigHolder.databaseDriverClassName
 
-    init {
-        if (databaseUrl == null) {
-            val properties = Properties()
-            val configFile = javaClass.classLoader.getResourceAsStream("config.properties")
-            properties.load(configFile)
-            setConfiguration(properties.getProperty("databaseUrl"),
-                properties.getProperty("databaseUsername"),
-                properties.getProperty("databasePassword"),
-                properties.getProperty("databaseDriverClassName"))
-        }
-    }
-
     private var connection: Connection? = null
 
     fun connect() {
         try {
+            if (databaseUrl == null) {
+                val properties = Properties()
+                val configFile = javaClass.classLoader.getResourceAsStream("config.properties")
+                properties.load(configFile)
+                setConfiguration(properties.getProperty("databaseUrl"),
+                    properties.getProperty("databaseUsername"),
+                    properties.getProperty("databasePassword"),
+                    properties.getProperty("databaseDriverClassName"))
+            }
             Class.forName(databaseDriverClassName)
             connection = DriverManager.getConnection(databaseUrl, databaseUsername, databasePassword)
             println("Database Connection Successful")
