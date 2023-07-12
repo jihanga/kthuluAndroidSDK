@@ -22,6 +22,12 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        setConfiguration(
+            getString(R.string.kthulu_database_url),
+            getString(R.string.kthulu_database_username),
+            getString(R.string.kthulu_database_password),
+            getString(R.string.kthulu_database_driver_class_name)
+        )
 
         val networkArray = arrayOf("ethereum", "cypress", "matic", "bnb")
         val accountsAddtess = "0x1C3c32DFB8cBe1E144d5e79eB41392e535405C40"

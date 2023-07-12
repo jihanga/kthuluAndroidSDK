@@ -4,10 +4,10 @@ import java.sql.*
 import java.util.*
 
 object ConfigHolder {
-    lateinit var databaseUrl: String
-    lateinit var databaseUsername: String
-    lateinit var databasePassword: String
-    lateinit var databaseDriverClassName: String
+    var databaseUrl: String? = null
+    var databaseUsername: String? = null
+    var databasePassword: String? = null
+    var databaseDriverClassName: String? = null
 }
 
 fun setConfiguration(databaseUrl: String, databaseUsername: String, databasePassword: String, databaseDriverClassName: String) {
@@ -18,36 +18,46 @@ fun setConfiguration(databaseUrl: String, databaseUsername: String, databasePass
 }
 
 class DBConnector() {
-    // Access the configuration values from MyOtherClass or any other class
-    val databaseUrl = ConfigHolder.databaseUrl
-    val databaseUsername = ConfigHolder.databaseUsername
-    val databasePassword = ConfigHolder.databasePassword
-    val databaseDriverClassName = ConfigHolder.databaseDriverClassName
-
-    init {
-        if (databaseUrl == null) {
-            val properties = Properties()
-            val configFile = javaClass.classLoader.getResourceAsStream("config.properties")
-            properties.load(configFile)
-            setConfiguration(properties.getProperty("databaseUrl"),
-                properties.getProperty("databaseUsername"),
-                properties.getProperty("databasePassword"),
-                properties.getProperty("databaseDriverClassName"))
-        }
-    }
-
     private var connection: Connection? = null
 
     fun connect() {
         try {
-            Class.forName(databaseDriverClassName)
-            connection = DriverManager.getConnection(databaseUrl, databaseUsername, databasePassword)
+            if (ConfigHolder.databaseUrl != null && ConfigHolder.databaseUsername != null &&
+                ConfigHolder.databasePassword != null && ConfigHolder.databaseDriverClassName != null
+            ) {
+                // User-specified configuration
+                connectToDatabase(
+                    ConfigHolder.databaseUrl!!,
+                    ConfigHolder.databaseUsername!!,
+                    ConfigHolder.databasePassword!!,
+                    ConfigHolder.databaseDriverClassName!!
+                )
+            } else {
+                // Manual configuration
+                connectToDatabase(
+                    "jdbc:mariadb://210.207.161.10:3306/kthulu?useUnicode=true&amp;characterEncoding=UTF-8&amp;useSSL=false",
+                    "abcuser",
+                    "abcuserpw",
+                    "org.mariadb.jdbc.Driver"
+                )
+            }
+
             println("Database Connection Successful")
         } catch (ex: ClassNotFoundException) {
             ex.printStackTrace()
         } catch (ex: SQLException) {
             ex.printStackTrace()
         }
+    }
+
+    private fun connectToDatabase(
+        databaseUrl: String,
+        databaseUsername: String,
+        databasePassword: String,
+        databaseDriverClassName: String
+    ) {
+        Class.forName(databaseDriverClassName)
+        connection = DriverManager.getConnection(databaseUrl, databaseUsername, databasePassword)
     }
 
     fun disconnect() {
