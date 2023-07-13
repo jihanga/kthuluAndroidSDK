@@ -36,8 +36,8 @@ class DBConnector() {
                 // Manual configuration
                 connectToDatabase(
                     "jdbc:mariadb://210.207.161.10:3306/kthulu?useUnicode=true&amp;characterEncoding=UTF-8&amp;useSSL=false",
-                    "abcuser",
-                    "abcuserpw",
+                    "kthulu",
+                    "kthulu123",
                     "org.mariadb.jdbc.Driver"
                 )
             }
