@@ -29,15 +29,17 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             getString(R.string.kthulu_database_driver_class_name)
         )
 
-        val networkArray = arrayOf("ethereum", "cypress", "matic", "bnb")
-        val accountsAddtess = "0x1C3c32DFB8cBe1E144d5e79eB41392e535405C40"
+        val networkArray = arrayOf("ethereum", "cypress", "polygon", "bnb")
+        val accountArray = arrayOf("0x7760E0243cA9BAA630412865DF7b39AfbA42Ff0f", "0x7760E0243cA9BAA630412865DF7b39AfbA42Ff0f")
+//        val accountsAddtess = "0x1C3c32DFB8cBe1E144d5e79eB41392e535405C40"
         // Using coroutines to avoid blocking the UI thread
         launch {
             withContext(Dispatchers.IO) {
 //                account()
 //                transaction()
 //                var getNFTsByWalletTest = getNFTsByWallet(networkArray, account)
-//                println("getNFTsByWalletTest ===== " + getNFTsByWalletTest)
+                var getNFTsByWalletTest = getNFTsByWallet(networkArray, accountArray)
+                println("getNFTsByWalletTest ===== " + getNFTsByWalletTest)
 //                var getNFTTransaction = getNFTTransaction("ethereum", "0x3296379a4F0fFEcE6Da595d1206f3dD85fC08508", "9072")
 //                println("getNFTTransaction ==== " + getNFTTransaction)
 //                  var gas = getEstimateGas("ethereum", "baseFee")
