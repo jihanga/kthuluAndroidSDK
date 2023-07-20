@@ -57,4 +57,3 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         cancel() // Cancel all coroutines when the activity is destroyed
     }
 }
-

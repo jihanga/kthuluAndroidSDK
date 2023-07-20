@@ -1158,6 +1158,3 @@ suspend fun deployErc721Async(
 //fun decimalToHexString(decimal: Int): String {
 //    return Integer.toHexString(decimal)
 //}
-
-
-

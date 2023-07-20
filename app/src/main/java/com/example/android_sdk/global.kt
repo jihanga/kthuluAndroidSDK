@@ -31,6 +31,7 @@ import java.security.spec.X509EncodedKeySpec
 import java.util.Base64
 import javax.crypto.Cipher
 
+
 // Create RSA key
 fun generateRSAKeyPair() : KeyPair {
     val keyGen = KeyPairGenerator.getInstance("RSA")

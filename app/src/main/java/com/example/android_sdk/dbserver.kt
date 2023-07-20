@@ -41,7 +41,6 @@ class DBConnector() {
                     "org.mariadb.jdbc.Driver"
                 )
             }
-
             println("Database Connection Successful")
         } catch (ex: ClassNotFoundException) {
             ex.printStackTrace()

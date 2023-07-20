@@ -519,9 +519,6 @@ suspend fun getTokenHistoryAsync(
     val jsonData = JSONObject()
     val transferArray = JSONArray()
 
-    // 매개변수 : network, token_address, account
-    // 테이블 : token_transfer_table
-    // 조건 : network & (from == account || to == account)
     val query =
         "SELECT network, token_address, block_number, timestamp, transaction_hash, `from`, `to`, amount, gas_used FROM token_transfer_table WHERE network = '$network' AND token_address = '$token_address' AND (`from` ='$owner_account' OR `to` ='$owner_account')"
 

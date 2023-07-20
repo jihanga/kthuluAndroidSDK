@@ -225,7 +225,6 @@ suspend fun sendTokenTransactionAsync(
                 getEstimateGas(network, "baseFee") // maxFeePerGas Add 20% to the gas price
             )
         }
-
         val signedTransaction = TransactionEncoder.signMessage(transaction, credentials)
         val hexValue = Numeric.toHexString(signedTransaction)
 
