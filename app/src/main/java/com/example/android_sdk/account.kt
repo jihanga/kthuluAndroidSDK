@@ -645,7 +645,6 @@ suspend fun getTokenHistoryAsync(
 
                     transferArray.put(jsonData)
                 }
-
                 resultData.put("result", "FAIL")
                 resultData.put("value", resultArray)
             } catch (ex: SQLException) {
