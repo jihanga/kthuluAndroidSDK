@@ -33,7 +33,7 @@ suspend fun account() = runBlocking<Unit> {
 //        println(
 //            """
 //            Create Accounts loaddata:
-//            ${loadData("0xba61db39c69d572b23461d1a55b669f4f570b920")}
+//            ${loadData("0x90d86020c8241326f0950795a3a8db6f593a321a")}
 //            """.trimIndent()
 //        )
 //        /**
@@ -89,14 +89,14 @@ suspend fun account() = runBlocking<Unit> {
 //            }
 //         */
 //
-//        // Find account info asynchronously to network & account
-//        val getAccountInfo = async { getAccountInfoAsync("0xba61db39c69d572b23461d1a55b669f4f570b920") }.await()
-//        println(
-//            """
-//            getAccountInfo:
-//            ${getAccountInfo}
-//            """.trimIndent()
-//        )
+        // Find account info asynchronously to network & account
+        val getAccountInfo = async { getAccountInfoAsync("0x90d86020c8241326f0950795a3a8db6f593a321a") }.await()
+        println(
+            """
+            getAccountInfo:
+            ${getAccountInfo}
+            """.trimIndent()
+        )
 //        /**
 //         * getAccountInfo :
 //        {
@@ -645,6 +645,7 @@ suspend fun getTokenHistoryAsync(
 
                     transferArray.put(jsonData)
                 }
+
                 resultData.put("result", "FAIL")
                 resultData.put("value", resultArray)
             } catch (ex: SQLException) {
@@ -691,8 +692,8 @@ suspend fun getUsersAsync(
                     // Select data json type
                     jsonData.put("owner", owner)
                     jsonData.put("network", network)
-                    jsonData.put("account", account)
-                    jsonData.put("type", type)
+                    jsonData.put("user_account", account)
+                    jsonData.put("user_type", type)
 
                     resultArray.put(jsonData)
                 }
