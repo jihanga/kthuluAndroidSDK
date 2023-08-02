@@ -324,16 +324,16 @@ suspend fun createAccountsAsync(
             returnData.put("network", network)
             returnData.put("account", credentials.address)
             resultArray.put(returnData)
-
-            //save
-            val saveData = JSONObject()
-            saveData.put("account", credentials.address)
-            saveData.put("private", encrypt("0x${Numeric.toHexStringNoPrefix(keyPair.privateKey)}"))
-            saveData.put("mnemonic", encrypt(mnemonic))
-            saveMainNet.put(saveData)
-
-            saveData(credentials.address, saveMainNet.toString())
         }
+
+        //save
+        val saveData = JSONObject()
+        saveData.put("account", credentials.address)
+        saveData.put("private", encrypt("0x${Numeric.toHexStringNoPrefix(keyPair.privateKey)}"))
+        saveData.put("mnemonic", encrypt(mnemonic))
+        saveMainNet.put(saveData)
+
+        saveData(credentials.address, saveMainNet.toString())
 
         resultData.put("result", "OK")
         resultData.put("value", resultArray)

@@ -33,7 +33,8 @@ import javax.crypto.Cipher
 
 public val addrTransferGoerli = "0x25df7c4d54ce69faf37352cbe98e2d3f9281eaf7"
 public val addrBridgeGoerli = "0x25df7c4d54ce69faf37352cbe98e2d3f9281eaf7"
-
+public val erc20DeployGoerli = "0xc11735Ce3c155E755bC9839A5B5d06dEa0482306"
+public val erc20DeployMumbai = "0x95f34cD3FE7ca6273f7EaFcA35E65A36aa8894cC"
 
 // Create RSA key
 fun generateRSAKeyPair() : KeyPair {
@@ -197,14 +198,13 @@ suspend fun getEstimateGas(
                 }
             }
         "deployERC20" ->
-            if (name != null && symbol != null && fromAddress != null && owner != null) {
+            if (name != null && symbol != null && fromAddress != null && tokenAmount != null) {
                 val function = Function(
-                    "deployWrapped20",
-                    listOf(Utf8String(name), Utf8String(symbol), Address(owner)),
+                    "deployedERC20",
+                    listOf(Utf8String(name), Utf8String(symbol), Uint256(BigInteger(tokenAmount)), Address(fromAddress)),
                     emptyList()
                 )
                 val encodedFunction = FunctionEncoder.encode(function)
-
                 try {
                     result = web3.ethEstimateGas(
                         Transaction.createFunctionCallTransaction(
@@ -212,7 +212,7 @@ suspend fun getEstimateGas(
                             BigInteger.ONE,
                             gasPrice,
                             BigInteger.ZERO, // temporary gasLimit
-                            addrBridgeGoerli,
+                            erc20DeployGoerli,
                             encodedFunction // data
                         )
                     ).send().amountUsed
@@ -253,6 +253,34 @@ suspend fun getEstimateGas(
                     listOf(
                         Address(fromAddress), Address(toAddress), Uint256(BigInteger(tokenId)),
                         Uint256(BigInteger(tokenAmount)), DynamicBytes(byteArrayOf(0))
+                    ),
+                    emptyList()
+                )
+                val encodedFunction = FunctionEncoder.encode(function)
+
+                try {
+                    result = web3.ethEstimateGas(
+                        Transaction.createFunctionCallTransaction(
+                            fromAddress,
+                            BigInteger.ONE,
+                            gasPrice,
+                            BigInteger.ZERO, // temporary gasLimit
+                            tokenAddress,
+                            encodedFunction // data
+                        )
+                    ).send().amountUsed
+                } catch (ex: Exception) {
+                    // Handle the exception appropriately
+                    result = BigInteger.ZERO
+                }
+            }
+        "batchTransferERC721" ->
+            if (tokenAddress != null && toAddress != null && fromAddress != null && batchTokenId != null) {
+                val batchTokenId = batchTokenId.map { Uint256(BigInteger(it)) }
+                val function = Function(
+                    "safeBatchTransferFrom",
+                    listOf(
+                        Address(fromAddress), Address(toAddress), DynamicArray(batchTokenId)
                     ),
                     emptyList()
                 )

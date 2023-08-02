@@ -798,8 +798,8 @@ suspend fun sendNFT721TransactionAsync(
                 nftContractAddress,
                 BigInteger.ZERO,
                 encodedFunction,
-                //0.1gwei
-                BigInteger("100000000"),
+                //1gwei
+                BigInteger("1000000000"),
                 getEstimateGas(network, "baseFee")
             )
         }
@@ -893,8 +893,112 @@ suspend fun sendNFT1155TransactionAsync(
                 nftContractAddress,
                 BigInteger.ZERO,
                 encodedFunction,
-                //0.1gwei
-                BigInteger("100000000"),
+                //1gwei
+                BigInteger("1000000000"),
+                getEstimateGas(network, "baseFee")
+            )
+        }
+
+        val signedMessage = TransactionEncoder.signMessage(tx, credentials)
+        val signedTx = Numeric.toHexString(signedMessage)
+
+        val txHash = web3j.ethSendRawTransaction(signedTx).sendAsync().get().transactionHash
+        jsonData.put("result","OK")
+        jsonData.put("transactionHash",txHash)
+    } catch (e: Exception) {
+        jsonData.put("result", "FAIL")
+        jsonData.put("error", e.message)
+    }
+}
+
+suspend fun sendNFT721BatchTransactionAsync(
+    network: String,
+    fromAddress: String,
+    toAddress: String,
+    tokenId: Array<String>,
+    nftContractAddress: String
+): JSONObject = withContext(Dispatchers.IO) {
+    val jsonData = JSONObject()
+    val rpcUrl = when (network) {
+        "ethereum" -> "https://mainnet.infura.io/v3/02c509fda7da4fed882ac537046cfd66"
+        "cypress" -> "https://rpc.ankr.com/klaytn"
+        "polygon" -> "https://rpc-mainnet.maticvigil.com/v1/96ab7849c9d3f105416383dd284c3f7e6511208c"
+        "bnb" -> "https://bsc-dataseed.binance.org"
+        "goerli" -> "https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161"
+        "mumbai" -> "https://polygon-mumbai.infura.io/v3/4458cf4d1689497b9a38b1d6bbf05e78"
+        "bnbTest" -> "https://data-seed-prebsc-1-s1.binance.org:8545"
+        else -> throw IllegalArgumentException("Invalid main network type")
+    }
+    try {
+        val getAddressInfo = getAccountInfoAsync(fromAddress)
+        val privateKey = getAddressInfo.getString("private")
+        val web3j = Web3j.build(HttpService(rpcUrl))
+        val credentials =
+            Credentials.create(privateKey)
+
+        val ethGasPrice = web3j.ethGasPrice().sendAsync().get()
+
+        val batchTokenId = tokenId.map { Uint256(BigInteger(it)) }
+
+        val function = Function(
+            "safeBatchTransferFrom",
+            listOf(
+                Address(fromAddress), Address(toAddress), DynamicArray(batchTokenId)
+            ),
+            emptyList()
+        )
+        val encodedFunction = FunctionEncoder.encode(function)
+
+        val nonce = web3j.ethGetTransactionCount(fromAddress, DefaultBlockParameterName.PENDING)
+            .sendAsync()
+            .get()
+            .transactionCount
+
+        val gasPrice = ethGasPrice.gasPrice
+
+        val chainId = web3j.ethChainId().sendAsync().get().chainId.toLong()
+        val tx = if (network == "bnb" || network == "bnbTest") {
+            RawTransaction.createTransaction(
+                nonce,
+                getEstimateGas(network, "baseFee"), // Add 20% to the gas price
+                getEstimateGas(
+                    network,
+                    "batchTransferERC721",
+                    nftContractAddress,
+                    fromAddress,
+                    toAddress,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    tokenId
+                ), // Add 20% to the gas limit
+                nftContractAddress,
+                encodedFunction
+            )
+        } else {
+            RawTransaction.createTransaction(
+                chainId,
+                nonce,
+                getEstimateGas(
+                    network,
+                    "batchTransferERC721",
+                    nftContractAddress,
+                    fromAddress,
+                    toAddress,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    tokenId
+                ), // Add 20% to the gas limit
+                nftContractAddress,
+                BigInteger.ZERO,
+                encodedFunction,
+                //1gwei
+                BigInteger("1000000000"),
                 getEstimateGas(network, "baseFee")
             )
         }
@@ -1009,8 +1113,8 @@ suspend fun sendNFT1155BatchTransactionAsync(
                 nftContractAddress,
                 BigInteger.ZERO,
                 encodedFunction,
-                //0.1gwei
-                BigInteger("100000000"),
+                //1gwei
+                BigInteger("1000000000"),
                 getEstimateGas(network, "baseFee")
             )
         }

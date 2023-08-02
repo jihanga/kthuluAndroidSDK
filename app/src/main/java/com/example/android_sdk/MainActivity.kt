@@ -29,19 +29,48 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             getString(R.string.kthulu_database_driver_class_name)
         )
 
-//        val networkArray = arrayOf("ethereum", "cypress", "polygon", "bnb")
-//        val accountArray = arrayOf("0x7760E0243cA9BAA630412865DF7b39AfbA42Ff0f", "0x7760E0243cA9BAA630412865DF7b39AfbA42Ff0f")
+//        var network = arrayOf("ethereum", "cypress", "polygon", "bnb")
+//        var accountArray = arrayOf("0x7F8aD8986a7f87C1E03104995876A09D08B2c39b", "0x13418f99467D20A7970a36fe4F2fF6Ec494A3A12")
+//        var account = "0x13418f99467D20A7970a36fe4F2fF6Ec494A3A12"
+//        var collection_id = "0x22d5f9B75c524Fec1D6619787e582644CD4D7422"
+//        var sort = "desc"
+//        var limit = 10
+//        var page_number = 1
 //        val accountsAddtess = "0x1C3c32DFB8cBe1E144d5e79eB41392e535405C40"
         // Using coroutines to avoid blocking the UI thread
         launch {
             withContext(Dispatchers.IO) {
 //                account()
 //                transaction()
-//                var getNFTsByWalletTest = getNFTsByWallet(networkArray, account)
-//                var getNFTsByWalletTest = getNFTsByWallet(networkArray, accountArray)
-//                println("getNFTsByWalletTest ===== " + getNFTsByWalletTest)
-//                var getNFTTransaction = getNFTTransaction("ethereum", "0x3296379a4F0fFEcE6Da595d1206f3dD85fC08508", "9072")
-//                println("getNFTTransaction ==== " + getNFTTransaction)
+//                var getNFTsByWallet= getNFTsByWallet(
+//                    network = network,
+//                    account = account,
+//                    collection_id = collection_id,
+//                    sort = sort,
+//                    limit = limit,
+//                    page_number = page_number
+//                )
+//                println("getNFTsByWallet ===== " + getNFTsByWallet)
+//                var getNFTsByWalletArray= getNFTsByWalletArray(
+//                    network = network,
+//                    account = accountArray,
+//                    collection_id = collection_id,
+//                    sort = sort,
+//                    limit = limit,
+//                    page_number = page_number
+//                )
+//                println("getNFTsByWalletArray ===== " + getNFTsByWalletArray)
+//                var getNFTsTransferHistory =
+//                    getNFTsTransferHistory(
+//                        network = "polygon",
+//                        collection_id = "0xba6666B118f8303F990f3519DF07e160227cCE87",
+//                        token_id = "11",
+//                        type = "transfer",
+//                        sort = "desc",
+//                        limit = 10,
+//                        page_number = 1
+//                    )
+//                println("getNFTsTransferHistory ==== " + getNFTsTransferHistory)
 //                  var gas = getEstimateGas("ethereum", "baseFee")
 //                  println(gas)
 //                    var gasBydeploy = getEstimateGas("goerli", "deployERC721", null, "0x0eae45485F2D14FDEB3dAa1143E5170752D5EAe8", null, null, null, null, null, null, null, null, "asd", "asd", "0x0eae45485F2D14FDEB3dAa1143E5170752D5EAe8", "asd", "1")
@@ -57,3 +86,5 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         cancel() // Cancel all coroutines when the activity is destroyed
     }
 }
+
+

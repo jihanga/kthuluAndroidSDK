@@ -28,7 +28,7 @@ suspend fun transaction() = runBlocking<Unit> {
 //        val network = "ethereum"
 //        val fromAddress = "0x54fbF887EdB01983DD373E79a0f37413B4565De3"
         // test
-        val fromAddress = "0x0eae45485F2D14FDEB3dAa1143E5170752D5EAe8"
+        val fromAddress = "0xeC4eC414c1f6a0759e5d184E17dB45cCd87E09FD"
         val toAddress = "0x50515891B406cF7B8ab8D27243E0386ED06De7C8"
         val amount = "0.000001"
         val contractAddress = "0x02cbe46fb8a1f579254a9b485788f2d86cad51aa"
@@ -72,27 +72,27 @@ suspend fun transaction() = runBlocking<Unit> {
 //                deployErc20Async(
 //                    "goerli",
 //                    fromAddress,
-//                    "abcLabToken",
-//                    "ALT",
-//                    fromAddress
+//                    "seonghunToken",
+//                    "SHT",
+//                    "5000000000"
 //                )
 //            }.await()
 //        println("Transaction hash: ${deployErc20}")
 //        /**
 //         * Transaction hash: 0x..
 //         */
-        val mintErc20 =
-            async {
-                mintErc20Async(
-                    "goerli",
-                    fromAddress,
-                    "1000000000000000000",
-                )
-            }.await()
-        println("Transaction hash: ${mintErc20}")
-        /**
-         * Transaction hash: 0x..
-         */
+//        val mintErc20 =
+//            async {
+//                mintErc20Async(
+//                    "goerli",
+//                    fromAddress,
+//                    "1000000000000000000",
+//                )
+//            }.await()
+//        println("Transaction hash: ${mintErc20}")
+//        /**
+//         * Transaction hash: 0x..
+//         */
 
     }
 }
@@ -104,8 +104,6 @@ suspend fun sendTransactionAsync(
     toAddress: String,
     amount: String,
 ): JSONObject = withContext(Dispatchers.IO) {
-    val getAddressInfo = getAccountInfoAsync(fromAddress)
-    val privateKey = getAddressInfo.getString("private")
     val rpcUrl = when (network) {
         "ethereum" -> "https://mainnet.infura.io/v3/02c509fda7da4fed882ac537046cfd66"
         "cypress" -> "https://rpc.ankr.com/klaytn"
@@ -113,6 +111,11 @@ suspend fun sendTransactionAsync(
         "bnb" -> "https://bsc-dataseed.binance.org"
         else -> throw IllegalArgumentException("Invalid main network type")
     }
+    val getAddressInfo = getAccountInfoAsync(fromAddress)
+    val result = getAddressInfo.getJSONArray("value")
+    val value = result.getJSONObject(0)
+    val privateKey = value.getString("private")
+
     val jsonData = JSONObject()
     try {
         // Ensure amount is a valid number
@@ -191,8 +194,6 @@ suspend fun sendTokenTransactionAsync(
     // fromAddress를 사용하여, privateKey 가져오기
 
 ): JSONObject = withContext(Dispatchers.IO) {
-    val getAddressInfo = getAccountInfoAsync(fromAddress)
-    val privateKey = getAddressInfo.getString("private")
     val rpcUrl = when (network) {
         "ethereum" -> "https://mainnet.infura.io/v3/02c509fda7da4fed882ac537046cfd66"
         "cypress" -> "https://rpc.ankr.com/klaytn"
@@ -200,6 +201,10 @@ suspend fun sendTokenTransactionAsync(
         "bnb" -> "https://bsc-dataseed.binance.org"
         else -> throw IllegalArgumentException("Invalid main network type")
     }
+    val getAddressInfo = getAccountInfoAsync(fromAddress)
+    val result = getAddressInfo.getJSONArray("value")
+    val value = result.getJSONObject(0)
+    val privateKey = value.getString("private")
 
     val jsonData = JSONObject()
     try {
@@ -256,7 +261,8 @@ suspend fun sendTokenTransactionAsync(
                 contractAddress, // to
                 BigInteger.ZERO, // value
                 encodedFunction, // data
-                BigInteger.ZERO, // maxPriorityFeePerGas
+                //1gwei
+                BigInteger("1000000000"), // maxPriorityFeePerGas
                 getEstimateGas(network, "baseFee") // maxFeePerGas Add 20% to the gas price
             )
         }
@@ -279,10 +285,10 @@ suspend fun sendTokenTransactionAsync(
 
 suspend fun deployErc20Async(
     network: String,
-    publisherAddress: String,
+    ownerAddress: String,
     name: String,
     symbol: String,
-    ownerAddress: String? = publisherAddress
+    totalSupply: String
 ): JSONObject = withContext(Dispatchers.IO){
     val rpcUrl = when (network) {
         "ethereum" -> "https://mainnet.infura.io/v3/02c509fda7da4fed882ac537046cfd66"
@@ -294,8 +300,11 @@ suspend fun deployErc20Async(
         "bnbTest" -> "https://data-seed-prebsc-1-s1.binance.org:8545"
         else -> throw IllegalArgumentException("Invalid main network type")
     }
-    val getAddressInfo = getAccountInfoAsync(publisherAddress)
-    val privateKey = getAddressInfo.getString("private")
+    val getAddressInfo = getAccountInfoAsync(ownerAddress)
+    val result = getAddressInfo.getJSONArray("value")
+    val value = result.getJSONObject(0)
+    val privateKey = value.getString("private")
+
     val jsonData = JSONObject()
 
     try {
@@ -303,13 +312,14 @@ suspend fun deployErc20Async(
         val credentials =
             Credentials.create(privateKey)
         val function = Function(
-            "deployWrapped20",
-            listOf(Utf8String(name), Utf8String(symbol), Address(ownerAddress)),
+            "deployedERC20",
+            listOf(Utf8String(name), Utf8String(symbol), Uint256(BigInteger(totalSupply)), Address(ownerAddress)),
             emptyList()
         )
+
         val encodedFunction = FunctionEncoder.encode(function)
 
-        val nonce = web3j.ethGetTransactionCount(publisherAddress, DefaultBlockParameterName.PENDING)
+        val nonce = web3j.ethGetTransactionCount(ownerAddress, DefaultBlockParameterName.PENDING)
             .sendAsync()
             .get()
             .transactionCount
@@ -323,18 +333,18 @@ suspend fun deployErc20Async(
                     network,
                     "deployERC20",
                     null,
-                    publisherAddress,
+                    ownerAddress,
+                    null,
+                    totalSupply,
                     null,
                     null,
                     null,
                     null,
                     null,
                     null,
-                    null,
-                    null,
-                    name, symbol, ownerAddress
+                    name, symbol
                 ), // Add 20% to the gas limit
-                addrBridgeGoerli,
+                erc20DeployGoerli,
                 encodedFunction
             )
         } else {
@@ -345,21 +355,22 @@ suspend fun deployErc20Async(
                     network,
                     "deployERC20",
                     null,
-                    publisherAddress,
+                    ownerAddress,
+                    null,
+                    totalSupply,
                     null,
                     null,
                     null,
                     null,
                     null,
                     null,
-                    null,
-                    null,
-                    name, symbol, ownerAddress
+                    name, symbol
                 ), // Add 20% to the gas limit
-                addrBridgeGoerli,
+                erc20DeployGoerli,
                 BigInteger.ZERO,
                 encodedFunction,
-                BigInteger("100000000"), // maxPriorityFeePerGas
+                //1gwei
+                BigInteger("1000000000"), // maxPriorityFeePerGas
                 getEstimateGas(network, "baseFee") // Add 20% to the gas price
             )
         }
@@ -428,12 +439,12 @@ suspend fun mintErc20Async(
             RawTransaction.createTransaction(
                 chainId,
                 nonce,
-                BigInteger("4000000"), // maxPriorityFeePerGas
+                BigInteger("4000000"),
                 addrBridgeGoerli,
                 BigInteger.ZERO,
                 encodedFunction,
-                //0.1gwei
-                BigInteger("100000000"),
+                //1gwei
+                BigInteger("1000000000"), // maxPriorityFeePerGas
                 getEstimateGas(network, "baseFee")
             )
         }
