@@ -1,6 +1,5 @@
 package com.example.android_sdk
 
-import account
 import android.app.Application
 import android.content.Context
 import android.os.Bundle
@@ -41,7 +40,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         // Using coroutines to avoid blocking the UI thread
         launch {
             withContext(Dispatchers.IO) {
-                account()
+//                account()
 //                transaction()
 //                var getNFTsByWallet= getNFTsByWallet(
 //                    network = network,
