@@ -50,7 +50,7 @@ suspend fun transaction() = runBlocking<Unit> {
 //        val sendErc20Transaction =
 //            async {
 //                sendTokenTransactionAsync(
-//                    network,
+//                    "goerli",
 //                    fromAddress,
 //                    toAddress,
 //                    amount,
@@ -66,7 +66,7 @@ suspend fun transaction() = runBlocking<Unit> {
 //        } else {
 //            println("Error sending Token: ${sendErc20Transaction.getString("error")}")
 //        }
-
+//
 //        val deployErc20 =
 //            async {
 //                deployErc20Async(
@@ -109,9 +109,12 @@ suspend fun sendTransactionAsync(
         "cypress" -> "https://rpc.ankr.com/klaytn"
         "polygon" -> "https://rpc-mainnet.maticvigil.com/v1/96ab7849c9d3f105416383dd284c3f7e6511208c"
         "bnb" -> "https://bsc-dataseed.binance.org"
+        "goerli" -> "https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161"
+        "mumbai" -> "https://polygon-mumbai.infura.io/v3/4458cf4d1689497b9a38b1d6bbf05e78"
+        "bnbTest" -> "https://data-seed-prebsc-1-s1.binance.org:8545"
         else -> throw IllegalArgumentException("Invalid main network type")
     }
-    val getAddressInfo = getAccountInfoAsync(fromAddress)
+    val getAddressInfo = getAccountInfoAsync(fromAddress.lowercase())
     val result = getAddressInfo.getJSONArray("value")
     val value = result.getJSONObject(0)
     val privateKey = value.getString("private")
@@ -191,17 +194,18 @@ suspend fun sendTokenTransactionAsync(
     amount: String,
     contractAddress: String,
     decimals: Int
-    // fromAddress를 사용하여, privateKey 가져오기
-
 ): JSONObject = withContext(Dispatchers.IO) {
     val rpcUrl = when (network) {
         "ethereum" -> "https://mainnet.infura.io/v3/02c509fda7da4fed882ac537046cfd66"
         "cypress" -> "https://rpc.ankr.com/klaytn"
         "polygon" -> "https://rpc-mainnet.maticvigil.com/v1/96ab7849c9d3f105416383dd284c3f7e6511208c"
         "bnb" -> "https://bsc-dataseed.binance.org"
+        "goerli" -> "https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161"
+        "mumbai" -> "https://polygon-mumbai.infura.io/v3/4458cf4d1689497b9a38b1d6bbf05e78"
+        "bnbTest" -> "https://data-seed-prebsc-1-s1.binance.org:8545"
         else -> throw IllegalArgumentException("Invalid main network type")
     }
-    val getAddressInfo = getAccountInfoAsync(fromAddress)
+    val getAddressInfo = getAccountInfoAsync(fromAddress.lowercase())
     val result = getAddressInfo.getJSONArray("value")
     val value = result.getJSONObject(0)
     val privateKey = value.getString("private")
@@ -300,7 +304,7 @@ suspend fun deployErc20Async(
         "bnbTest" -> "https://data-seed-prebsc-1-s1.binance.org:8545"
         else -> throw IllegalArgumentException("Invalid main network type")
     }
-    val getAddressInfo = getAccountInfoAsync(ownerAddress)
+    val getAddressInfo = getAccountInfoAsync(ownerAddress.lowercase())
     val result = getAddressInfo.getJSONArray("value")
     val value = result.getJSONObject(0)
     val privateKey = value.getString("private")

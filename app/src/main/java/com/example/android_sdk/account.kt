@@ -16,7 +16,7 @@ suspend fun account() = runBlocking<Unit> {
         val networkArray = arrayOf("ethereum", "cypress", "polygon", "bnb")
         val network = arrayOf("ethereum","cypress")
         val mnemonic = "ripple shrimp endorse company horror benefit boring click enter clog grab aware";
-        val privateKey = "";
+        val privateKey = "0x8d993503bb78ab5abfdad2b194bad4ae7cba9fd4590e538d232ba84c41765887";
         val token_address = "0xab40804c3da6812f41d7744fde8d6b7e8a7c30d5"
         val account = "0x45a24682cb6e4f5e31e43b5e4213f21e6c3fa0f2"
         val owner = "abcuser"
@@ -119,7 +119,7 @@ suspend fun account() = runBlocking<Unit> {
 ////                networkString,
 ////                token_address
 //            "bnb",
-//                ""
+//                "0x1Ffe17B99b439bE0aFC831239dDECda2A790fF3A"
 //            )
 //        }.await()
 //        println(
@@ -142,7 +142,7 @@ suspend fun account() = runBlocking<Unit> {
 //        val getMainnetCoinBalance = async {
 //            getBalanceAsync(
 //                "ethereum",
-//                ""
+//                "0x1E555A5fa9ADcf4849f1A72A8678520e58F7e7Cc"
 ////                networkString,
 ////                account
 //            )
