@@ -747,7 +747,9 @@ suspend fun sendNFT721TransactionAsync(
 
     try {
         val getAddressInfo = getAccountInfoAsync(fromAddress)
-        val privateKey = getAddressInfo.getString("private")
+        val result = getAddressInfo.getJSONArray("value")
+        val value = result.getJSONObject(0)
+        val privateKey = value.getString("private")
 
         val web3j = Web3j.build(HttpService(rpcUrl))
         val credentials =
@@ -837,7 +839,9 @@ suspend fun sendNFT1155TransactionAsync(
     }
     try {
         val getAddressInfo = getAccountInfoAsync(fromAddress)
-        val privateKey = getAddressInfo.getString("private")
+        val result = getAddressInfo.getJSONArray("value")
+        val value = result.getJSONObject(0)
+        val privateKey = value.getString("private")
         val web3j = Web3j.build(HttpService(rpcUrl))
         val credentials =
             Credentials.create(privateKey)
@@ -931,7 +935,9 @@ suspend fun sendNFT721BatchTransactionAsync(
     }
     try {
         val getAddressInfo = getAccountInfoAsync(fromAddress)
-        val privateKey = getAddressInfo.getString("private")
+        val result = getAddressInfo.getJSONArray("value")
+        val value = result.getJSONObject(0)
+        val privateKey = value.getString("private")
         val web3j = Web3j.build(HttpService(rpcUrl))
         val credentials =
             Credentials.create(privateKey)
@@ -1036,7 +1042,9 @@ suspend fun sendNFT1155BatchTransactionAsync(
     }
     try {
         val getAddressInfo = getAccountInfoAsync(fromAddress)
-        val privateKey = getAddressInfo.getString("private")
+        val result = getAddressInfo.getJSONArray("value")
+        val value = result.getJSONObject(0)
+        val privateKey = value.getString("private")
         val web3j = Web3j.build(HttpService(rpcUrl))
         val credentials =
             Credentials.create(privateKey)
@@ -1154,7 +1162,9 @@ suspend fun deployErc721Async(
 
     try {
         val getAddressInfo = getAccountInfoAsync(fromAddress)
-        val privateKey = getAddressInfo.getString("private")
+        val result = getAddressInfo.getJSONArray("value")
+        val value = result.getJSONObject(0)
+        val privateKey = value.getString("private")
         val web3j = Web3j.build(HttpService(rpcUrl))
         val credentials =
             Credentials.create(privateKey)
@@ -1263,7 +1273,9 @@ suspend fun mintErc721Async(
 
     try {
         val getAddressInfo = getAccountInfoAsync(fromAddress)
-        val privateKey = getAddressInfo.getString("private")
+        val result = getAddressInfo.getJSONArray("value")
+        val value = result.getJSONObject(0)
+        val privateKey = value.getString("private")
         val web3j = Web3j.build(HttpService(rpcUrl))
         val credentials =
             Credentials.create(privateKey)

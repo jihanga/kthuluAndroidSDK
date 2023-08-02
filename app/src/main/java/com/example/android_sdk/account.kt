@@ -89,14 +89,14 @@ suspend fun account() = runBlocking<Unit> {
 //            }
 //         */
 //
-        // Find account info asynchronously to network & account
-        val getAccountInfo = async { getAccountInfoAsync("0x90d86020c8241326f0950795a3a8db6f593a321a") }.await()
-        println(
-            """
-            getAccountInfo:
-            ${getAccountInfo}
-            """.trimIndent()
-        )
+//        // Find account info asynchronously to network & account
+//        val getAccountInfo = async { getAccountInfoAsync("0x90d86020c8241326f0950795a3a8db6f593a321a") }.await()
+//        println(
+//            """
+//            getAccountInfo:
+//            ${getAccountInfo}
+//            """.trimIndent()
+//        )
 //        /**
 //         * getAccountInfo :
 //        {
