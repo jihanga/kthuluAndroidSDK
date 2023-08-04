@@ -1,6 +1,7 @@
 package com.example.android_sdk
 
 import getAccountInfoAsync
+import getTokenInfoAsync
 import kotlinx.coroutines.*
 import kotlinx.serialization.json.Json
 import org.json.JSONObject
@@ -70,29 +71,17 @@ suspend fun transaction() = runBlocking<Unit> {
 //        val deployErc20 =
 //            async {
 //                deployErc20Async(
-//                    "goerli",
+//                    "polygon",
 //                    fromAddress,
-//                    "seonghunToken",
-//                    "SHT",
+//                    "AbcSeonghunToken",
+//                    "AST",
 //                    "5000000000"
 //                )
 //            }.await()
 //        println("Transaction hash: ${deployErc20}")
-//        /**
-//         * Transaction hash: 0x..
-//         */
-//        val mintErc20 =
-//            async {
-//                mintErc20Async(
-//                    "goerli",
-//                    fromAddress,
-//                    "1000000000000000000",
-//                )
-//            }.await()
-//        println("Transaction hash: ${mintErc20}")
-//        /**
-//         * Transaction hash: 0x..
-//         */
+        /**
+         * Transaction hash: 0x..
+         */
 
     }
 }
@@ -104,16 +93,7 @@ suspend fun sendTransactionAsync(
     toAddress: String,
     amount: String,
 ): JSONObject = withContext(Dispatchers.IO) {
-    val rpcUrl = when (network) {
-        "ethereum" -> "https://mainnet.infura.io/v3/02c509fda7da4fed882ac537046cfd66"
-        "cypress" -> "https://rpc.ankr.com/klaytn"
-        "polygon" -> "https://rpc-mainnet.maticvigil.com/v1/96ab7849c9d3f105416383dd284c3f7e6511208c"
-        "bnb" -> "https://bsc-dataseed.binance.org"
-        "goerli" -> "https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161"
-        "mumbai" -> "https://polygon-mumbai.infura.io/v3/4458cf4d1689497b9a38b1d6bbf05e78"
-        "bnbTest" -> "https://data-seed-prebsc-1-s1.binance.org:8545"
-        else -> throw IllegalArgumentException("Invalid main network type")
-    }
+    networkSettings(network)
     val getAddressInfo = getAccountInfoAsync(fromAddress.lowercase())
     val result = getAddressInfo.getJSONArray("value")
     val value = result.getJSONObject(0)
@@ -166,7 +146,7 @@ suspend fun sendTransactionAsync(
                 toAddress, // to
                 weiAmount, // value
                 "0x", // data
-                BigInteger.ZERO, // maxPriorityFeePerGas
+                BigInteger("33000000000"), // maxPriorityFeePerGas
                 getEstimateGas(network, "baseFee") // maxFeePerGas Add 20% to the gas price
             )
         }
@@ -178,8 +158,13 @@ suspend fun sendTransactionAsync(
             .sendAsync()
             .get()
             .transactionHash
-        jsonData.put("result", "OK")
-        jsonData.put("transactionHash", transactionHash)
+        if(transactionHash != null) {
+            jsonData.put("result", "OK")
+            jsonData.put("transactionHash", transactionHash)
+        } else {
+            jsonData.put("result", "FAIL")
+            jsonData.put("error", "insufficient funds")
+        }
     } catch (e: Exception) {
         jsonData.put("result", "FAIL")
         jsonData.put("error", e.message)
@@ -192,19 +177,9 @@ suspend fun sendTokenTransactionAsync(
     fromAddress: String,
     toAddress: String,
     amount: String,
-    contractAddress: String,
-    decimals: Int
+    token_address: String
 ): JSONObject = withContext(Dispatchers.IO) {
-    val rpcUrl = when (network) {
-        "ethereum" -> "https://mainnet.infura.io/v3/02c509fda7da4fed882ac537046cfd66"
-        "cypress" -> "https://rpc.ankr.com/klaytn"
-        "polygon" -> "https://rpc-mainnet.maticvigil.com/v1/96ab7849c9d3f105416383dd284c3f7e6511208c"
-        "bnb" -> "https://bsc-dataseed.binance.org"
-        "goerli" -> "https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161"
-        "mumbai" -> "https://polygon-mumbai.infura.io/v3/4458cf4d1689497b9a38b1d6bbf05e78"
-        "bnbTest" -> "https://data-seed-prebsc-1-s1.binance.org:8545"
-        else -> throw IllegalArgumentException("Invalid main network type")
-    }
+    networkSettings(network)
     val getAddressInfo = getAccountInfoAsync(fromAddress.lowercase())
     val result = getAddressInfo.getJSONArray("value")
     val value = result.getJSONObject(0)
@@ -212,13 +187,14 @@ suspend fun sendTokenTransactionAsync(
 
     val jsonData = JSONObject()
     try {
+        val decimals = getTokenInfoAsync(network, token_address).getString("decimals")
         // Ensure amount is a valid number
         if (BigDecimal(amount) <= BigDecimal.ZERO) {
             jsonData.put("error", "insufficient funds")
         }
         val web3 = Web3j.build(HttpService(rpcUrl))
         val credentials = Credentials.create(privateKey)
-        val decimalMultiplier = BigDecimal.TEN.pow(decimals)
+        val decimalMultiplier = BigDecimal.TEN.pow(decimals.toInt())
         val tokenAmount = BigDecimal(amount).multiply(decimalMultiplier).toBigInteger()
         val function = Function(
             "transfer",
@@ -241,12 +217,12 @@ suspend fun sendTokenTransactionAsync(
                 getEstimateGas(
                     network,
                     "transferERC20",
-                    contractAddress,
+                    token_address,
                     fromAddress,
                     toAddress,
                     amount
                 ), // Add 20% to the gas limit
-                contractAddress, // to
+                token_address, // to
                 tokenAmount, // value
                 encodedFunction // data
             )
@@ -257,16 +233,15 @@ suspend fun sendTokenTransactionAsync(
                 getEstimateGas(
                     network,
                     "transferERC20",
-                    contractAddress,
+                    token_address,
                     fromAddress,
                     toAddress,
                     amount
                 ), // gasLimit Add 20% to the gas limit,
-                contractAddress, // to
+                token_address, // to
                 BigInteger.ZERO, // value
                 encodedFunction, // data
-                //1gwei
-                BigInteger("1000000000"), // maxPriorityFeePerGas
+                BigInteger("33000000000"), // 30 Gwei maxPriorityFeePerGas
                 getEstimateGas(network, "baseFee") // maxFeePerGas Add 20% to the gas price
             )
         }
@@ -278,8 +253,13 @@ suspend fun sendTokenTransactionAsync(
             .sendAsync()
             .get()
             .transactionHash
-        jsonData.put("result", "OK")
-        jsonData.put("transactionHash", transactionHash)
+        if(transactionHash != null) {
+            jsonData.put("result", "OK")
+            jsonData.put("transactionHash", transactionHash)
+        } else {
+            jsonData.put("result", "FAIL")
+            jsonData.put("error", "insufficient funds")
+        }
     } catch (e: Exception) {
         jsonData.put("result", "FAIL")
         jsonData.put("error", e.message)
@@ -294,16 +274,8 @@ suspend fun deployErc20Async(
     symbol: String,
     totalSupply: String
 ): JSONObject = withContext(Dispatchers.IO){
-    val rpcUrl = when (network) {
-        "ethereum" -> "https://mainnet.infura.io/v3/02c509fda7da4fed882ac537046cfd66"
-        "cypress" -> "https://rpc.ankr.com/klaytn"
-        "polygon" -> "https://rpc-mainnet.maticvigil.com/v1/96ab7849c9d3f105416383dd284c3f7e6511208c"
-        "bnb" -> "https://bsc-dataseed.binance.org"
-        "goerli" -> "https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161"
-        "mumbai" -> "https://polygon-mumbai.infura.io/v3/4458cf4d1689497b9a38b1d6bbf05e78"
-        "bnbTest" -> "https://data-seed-prebsc-1-s1.binance.org:8545"
-        else -> throw IllegalArgumentException("Invalid main network type")
-    }
+    networkSettings(network)
+
     val getAddressInfo = getAccountInfoAsync(ownerAddress.lowercase())
     val result = getAddressInfo.getJSONArray("value")
     val value = result.getJSONObject(0)
@@ -348,7 +320,7 @@ suspend fun deployErc20Async(
                     null,
                     name, symbol
                 ), // Add 20% to the gas limit
-                erc20DeployGoerli,
+                erc20DeployContractAddress,
                 encodedFunction
             )
         } else {
@@ -370,95 +342,24 @@ suspend fun deployErc20Async(
                     null,
                     name, symbol
                 ), // Add 20% to the gas limit
-                erc20DeployGoerli,
+                erc20DeployContractAddress,
                 BigInteger.ZERO,
                 encodedFunction,
-                //1gwei
-                BigInteger("1000000000"), // maxPriorityFeePerGas
+                BigInteger("33000000000"), // 33 Gwei maxPriorityFeePerGas
                 getEstimateGas(network, "baseFee") // Add 20% to the gas price
             )
         }
-
         val signedMessage = TransactionEncoder.signMessage(tx, credentials)
         val signedTx = Numeric.toHexString(signedMessage)
 
         val txHash = web3j.ethSendRawTransaction(signedTx).sendAsync().get().transactionHash
-        jsonData.put("result","OK")
-        jsonData.put("transactionHash",txHash)
-    } catch (e: Exception) {
-        jsonData.put("result", "FAIL")
-        jsonData.put("error", e.message)
-    }
-}
-
-suspend fun mintErc20Async(
-    network: String,
-    publisherAddress: String,
-    amount: String,
-    ownerAddress: String? = publisherAddress
-): JSONObject = withContext(Dispatchers.IO){
-    val rpcUrl = when (network) {
-        "ethereum" -> "https://mainnet.infura.io/v3/02c509fda7da4fed882ac537046cfd66"
-        "cypress" -> "https://rpc.ankr.com/klaytn"
-        "matic" -> "https://rpc-mainnet.maticvigil.com/v1/96ab7849c9d3f105416383dd284c3f7e6511208c"
-        "bnb" -> "https://bsc-dataseed.binance.org"
-        "goerli" -> "https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161"
-        "mumbai" -> "https://polygon-mumbai.infura.io/v3/4458cf4d1689497b9a38b1d6bbf05e78"
-        "bnbTest" -> "https://data-seed-prebsc-1-s1.binance.org:8545"
-        else -> throw IllegalArgumentException("Invalid main network type")
-    }
-    val jsonData = JSONObject()
-
-    try {
-        val web3j = Web3j.build(HttpService(rpcUrl))
-        val credentials =
-            Credentials.create("")
-
-        val function = Function(
-            "mint",
-            listOf(Address(ownerAddress), Uint256(BigInteger(amount))),
-            emptyList()
-        )
-        val encodedFunction = FunctionEncoder.encode(function)
-
-        val nonce = web3j.ethGetTransactionCount(ownerAddress, DefaultBlockParameterName.PENDING)
-            .sendAsync()
-            .get()
-            .transactionCount
-
-        val chainId = web3j.ethChainId().sendAsync().get().chainId.toLong()
-        val tx = if (network == "bnb" || network == "bnbTest") {
-            RawTransaction.createTransaction(
-                nonce,
-                getEstimateGas(network, "baseFee"), // Add 20% to the gas price
-                getEstimateGas(
-                    network,
-                    "mintERC721",
-                    null
-                ), // Add 20% to the gas limit
-                addrBridgeGoerli,
-                encodedFunction
-            )
+        if(txHash != null) {
+            jsonData.put("result", "OK")
+            jsonData.put("transactionHash", txHash)
         } else {
-            RawTransaction.createTransaction(
-                chainId,
-                nonce,
-                BigInteger("4000000"),
-                addrBridgeGoerli,
-                BigInteger.ZERO,
-                encodedFunction,
-                //1gwei
-                BigInteger("1000000000"), // maxPriorityFeePerGas
-                getEstimateGas(network, "baseFee")
-            )
+            jsonData.put("result", "FAIL")
+            jsonData.put("error", "insufficient funds")
         }
-
-        val signedMessage = TransactionEncoder.signMessage(tx, credentials)
-        val signedTx = Numeric.toHexString(signedMessage)
-
-        val txHash = web3j.ethSendRawTransaction(signedTx).sendAsync().get().transactionHash
-        jsonData.put("result","OK")
-        jsonData.put("transactionHash",txHash)
     } catch (e: Exception) {
         jsonData.put("result", "FAIL")
         jsonData.put("error", e.message)
