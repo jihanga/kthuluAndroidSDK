@@ -6,6 +6,8 @@ import kotlinx.coroutines.*
 import kotlinx.serialization.json.Json
 import org.json.JSONObject
 import org.web3j.abi.FunctionEncoder
+import org.web3j.abi.FunctionReturnDecoder
+import org.web3j.abi.TypeReference
 import org.web3j.abi.datatypes.Address
 import org.web3j.abi.datatypes.Function
 import org.web3j.abi.datatypes.Utf8String
@@ -16,6 +18,7 @@ import org.web3j.crypto.RawTransaction
 import org.web3j.crypto.TransactionEncoder
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.core.DefaultBlockParameterName
+import org.web3j.protocol.core.methods.request.Transaction
 import org.web3j.protocol.http.HttpService
 import org.web3j.tx.Transfer
 import org.web3j.utils.Convert
@@ -47,16 +50,15 @@ suspend fun transaction() = runBlocking<Unit> {
 //            println("Error sending Coin: ${sendCoinTransaction.getString("error")}")
 //        }
 //
-//        // Send token transaction asynchronously
+        // Send token transaction asynchronously
 //        val sendErc20Transaction =
 //            async {
 //                sendTokenTransactionAsync(
-//                    "goerli",
-//                    fromAddress,
-//                    toAddress,
-//                    amount,
-//                    contractAddress,
-//                    decimals
+//                    "polygon",
+//                    "0xeC4eC414c1f6a0759e5d184E17dB45cCd87E09FD",
+//                    "0x0eae45485F2D14FDEB3dAa1143E5170752D5EAe8",
+//                    "100000",
+//                    "0x8c0221b7d6e5c2BdCd3f8f68F08B41A2144C842d"
 //                )
 //            }.await()
 //        if (sendErc20Transaction.getString("result") == "OK") {
@@ -180,21 +182,27 @@ suspend fun sendTokenTransactionAsync(
     token_address: String
 ): JSONObject = withContext(Dispatchers.IO) {
     networkSettings(network)
-    val getAddressInfo = getAccountInfoAsync(fromAddress.lowercase())
-    val result = getAddressInfo.getJSONArray("value")
-    val value = result.getJSONObject(0)
-    val privateKey = value.getString("private")
-
     val jsonData = JSONObject()
     try {
-        val decimals = getTokenInfoAsync(network, token_address).getString("decimals")
-        // Ensure amount is a valid number
+        val getAddressInfo = getAccountInfoAsync(fromAddress.lowercase())
+        val result = getAddressInfo.getJSONArray("value")
+        val value = result.getJSONObject(0)
+        val privateKey = value.getString("private")
+        val web3 = Web3j.build(HttpService(rpcUrl))
         if (BigDecimal(amount) <= BigDecimal.ZERO) {
             jsonData.put("error", "insufficient funds")
         }
-        val web3 = Web3j.build(HttpService(rpcUrl))
+        val decimalsFunction = Function("decimals", emptyList(), listOf(object : TypeReference<Uint8>() {}))
+        val encodedDecimalsFunction = FunctionEncoder.encode(decimalsFunction)
+        val decimalsResponse = web3.ethCall(
+            Transaction.createEthCallTransaction(null, token_address, encodedDecimalsFunction),
+            DefaultBlockParameterName.LATEST
+        ).send()
+        val decimalsOutput =
+            FunctionReturnDecoder.decode(decimalsResponse.result, decimalsFunction.outputParameters)
+        val decimals = (decimalsOutput[0].value as BigInteger).toInt()
         val credentials = Credentials.create(privateKey)
-        val decimalMultiplier = BigDecimal.TEN.pow(decimals.toInt())
+        val decimalMultiplier = BigDecimal.TEN.pow(decimals)
         val tokenAmount = BigDecimal(amount).multiply(decimalMultiplier).toBigInteger()
         val function = Function(
             "transfer",
@@ -253,6 +261,7 @@ suspend fun sendTokenTransactionAsync(
             .sendAsync()
             .get()
             .transactionHash
+
         if(transactionHash != null) {
             jsonData.put("result", "OK")
             jsonData.put("transactionHash", transactionHash)
