@@ -289,6 +289,20 @@ suspend fun account() = runBlocking<Unit> {
 //        }
 //        ]
 //         */
+
+        // Get mainnet coin balance asynchronously
+        val getTokenList = async {
+            getTokenListAsync(
+                "polygon",
+                "0x000555FcdDeE9925D9176C2a63867305a92667BE"
+            )
+        }.await()
+        println(
+            """
+            getTokenList:
+            ${getTokenList}
+            """.trimIndent()
+        )
     }
 }
 
@@ -713,3 +727,67 @@ suspend fun getUsersAsync(
     resultData
 }
 
+suspend fun getTokenListAsync(
+    network: String,
+    ownerAddress: String,
+    sort: String? = "DESC",
+    limit: Int? = null,
+    page_number: Int? = null): JSONObject = withContext(Dispatchers.IO) {
+    val dbConnector = DBConnector()
+    dbConnector.connect()
+    val connection = dbConnector.getConnection()
+
+    val resultArray = JSONArray()
+    val resultData = JSONObject().apply {
+        put("result", "FAIL")
+        put("value", resultArray)
+    }
+
+    val offset = limit?.let { lim -> page_number?.minus(1)?.times(lim) } ?: 0
+
+    var query =
+    " SELECT" +
+    " idx AS idx," +
+    " network AS network," +
+    " token_address AS token_id," +
+    " owner_account AS owner," +
+    " balance AS balance," +
+    " (SELECT decimals FROM token_table WHERE token_address = t.token_address LIMIT 1) AS decimals," +
+    " (SELECT token_symbol FROM token_table WHERE token_address = t.token_address LIMIT 1) AS symbol," +
+    " (SELECT token_name FROM token_table WHERE token_address = t.token_address LIMIT 1) AS name," +
+    " (SELECT COUNT(*) FROM token_owner_table WHERE network = '$network' AND owner_account = '$ownerAddress') AS sum " +
+    " FROM" +
+    " token_owner_table t" +
+    " WHERE" +
+    " network = '$network' AND owner_account = '$ownerAddress'" +
+    " ORDER BY" +
+            " idx $sort";
+
+    if(offset != 0) {
+        query += " LIMIT $limit OFFSET $offset";
+    }
+
+    connection?.use {
+        val dbQueryExecutor = DBQueryExector(it)
+        val resultSet = dbQueryExecutor.executeQuery(query)
+        resultSet?.use {
+            while (it.next()) {
+                val jsonData = JSONObject().apply {
+                    put("network", it.getString("network"))
+                    put("token_id", it.getString("token_id"))
+                    put("owner", it.getString("owner"))
+                    put("balance", it.getString("balance"))
+                    put("decimals", it.getString("decimals"))
+                    put("symbol", it.getString("symbol"))
+                    put("name", it.getString("name"))
+                    put("sum", it.getString("sum"))
+                }
+                resultArray.put(jsonData)
+            }
+            resultData.put("result", "OK")
+            resultData.put("value", resultArray)
+        }
+    }
+    dbConnector.disconnect()
+    resultData
+}
