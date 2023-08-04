@@ -78,9 +78,9 @@ suspend fun setNFTsTrash(
     try {
         val trashQuery =
             "INSERT INTO " +
-                "nft_trash_table (network, account, collection_id, token_id, owner) " +
-            "VALUES " +
-                "('$network', '$account', '$collection_id', '$token_id', '$owner')"
+                    "nft_trash_table (network, account, collection_id, token_id, owner) " +
+                    "VALUES " +
+                    "('$network', '$account', '$collection_id', '$token_id', '$owner')"
 
         println(trashQuery)
 
@@ -129,16 +129,16 @@ suspend fun deleteNFTsTrash(
     try {
         val deleteQuery =
             "DELETE FROM " +
-                "nft_trash_table " +
-            "WHERE " +
-                "network = '$network' " +
-                "AND " +
+                    "nft_trash_table " +
+                    "WHERE " +
+                    "network = '$network' " +
+                    "AND " +
                     "account = '$account' " +
-                "AND " +
+                    "AND " +
                     "collection_id = '$collection_id' " +
-                "AND " +
+                    "AND " +
                     "token_id = '$token_id' " +
-                "AND " +
+                    "AND " +
                     "owner = '$owner'"
 
         println(deleteQuery)
@@ -189,45 +189,45 @@ suspend fun getNFTsByWallet(
     }
     var strQuery =
         "SELECT" +
-            " owner.network AS network," +
-            " collection.collection_id AS collection_id," +
-            " collection.collection_name AS collection_name," +
-            " collection.collection_symbol AS collection_symbol," +
-            " collection.creator AS creator," +
-            " collection.deployment_date AS deployment_date," +
-            " collection.total_supply AS total_supply," +
-            " token.nft_type AS nft_type," +
-            " token.minted_time AS minted_time," +
-            " token.block_number AS block_number," +
-            " owner.owner_account AS owner_account," +
-            " token.token_id AS token_id," +
-            " owner.balance AS balance," +
-            " token.token_uri AS token_uri," +
-            " token.nft_name AS nft_name," +
-            " token.description AS description," +
-            " token.image_url AS image_url," +
-            " token.external_url AS external_url," +
-            " token.attribute AS attribute," +
-            " token.token_info AS token_info" +
-        " FROM " +
-            "nft_owner_table AS owner" +
-        " JOIN " +
-            "nft_token_table AS token" +
-        " ON" +
-            " owner.collection_id = token.collection_id" +
-            " AND " +
+                " owner.network AS network," +
+                " collection.collection_id AS collection_id," +
+                " collection.collection_name AS collection_name," +
+                " collection.collection_symbol AS collection_symbol," +
+                " collection.creator AS creator," +
+                " collection.deployment_date AS deployment_date," +
+                " collection.total_supply AS total_supply," +
+                " token.nft_type AS nft_type," +
+                " token.minted_time AS minted_time," +
+                " token.block_number AS block_number," +
+                " owner.owner_account AS owner_account," +
+                " token.token_id AS token_id," +
+                " owner.balance AS balance," +
+                " token.token_uri AS token_uri," +
+                " token.nft_name AS nft_name," +
+                " token.description AS description," +
+                " token.image_url AS image_url," +
+                " token.external_url AS external_url," +
+                " token.attribute AS attribute," +
+                " token.token_info AS token_info" +
+                " FROM " +
+                "nft_owner_table AS owner" +
+                " JOIN " +
+                "nft_token_table AS token" +
+                " ON" +
+                " owner.collection_id = token.collection_id" +
+                " AND " +
                 " owner.token_id = token.token_id" +
-            " AND " +
+                " AND " +
                 " owner.network = token.network" +
-        " JOIN " +
-            "nft_collection_table AS collection" +
-        " ON" +
-            " token.collection_id = collection.collection_id" +
-            " AND" +
+                " JOIN " +
+                "nft_collection_table AS collection" +
+                " ON" +
+                " token.collection_id = collection.collection_id" +
+                " AND" +
                 " token.network = collection.network" +
-        " WHERE" +
-            " owner.network IN (${net})" +
-            " AND" +
+                " WHERE" +
+                " owner.network IN (${net})" +
+                " AND" +
                 " owner.balance != '0'"
     if (account != null) {
         strQuery += " AND owner.owner_account = '$account'"
@@ -250,26 +250,26 @@ suspend fun getNFTsByWallet(
 
     var sumQuery =
         "SELECT" +
-            " count(*) AS sum" +
-        " FROM" +
-            " nft_owner_table AS owner" +
-        " JOIN" +
-            " nft_token_table AS token" +
-        " ON" +
-            " owner.collection_id = token.collection_id" +
-            " AND" +
+                " count(*) AS sum" +
+                " FROM" +
+                " nft_owner_table AS owner" +
+                " JOIN" +
+                " nft_token_table AS token" +
+                " ON" +
+                " owner.collection_id = token.collection_id" +
+                " AND" +
                 " owner.token_id = token.token_id" +
-            " AND" +
+                " AND" +
                 " owner.network = token.network" +
-        " JOIN" +
-            " nft_collection_table AS collection" +
-        " ON" +
-            " token.collection_id = collection.collection_id" +
-            " AND" +
+                " JOIN" +
+                " nft_collection_table AS collection" +
+                " ON" +
+                " token.collection_id = collection.collection_id" +
+                " AND" +
                 " token.network = collection.network" +
-        " WHERE" +
-            " owner.network IN ($net)" +
-            " AND" +
+                " WHERE" +
+                " owner.network IN ($net)" +
+                " AND" +
                 " owner.balance != '0'"
     if (account != null) {
         sumQuery += " AND owner.owner_account = '$account' "
@@ -315,8 +315,8 @@ suspend fun getNFTsByWallet(
                         val attribute = getNFT.getString("attribute")
                         val token_info = getNFT.getString("token_info")
 
-                        val replace_attributes = JSONArray(attribute ?: "[]")
-                        val replace_metadata = JSONObject(token_info ?: "{}")
+//                        val replace_attributes = JSONArray(attribute ?: "[]")
+//                        val replace_metadata = JSONObject(token_info ?: "{}")
 
                         objRes.put("network", network)
                         objRes.put("collection_id", collection_id ?: JSONObject.NULL)
@@ -336,8 +336,8 @@ suspend fun getNFTsByWallet(
                         objRes.put("description", description ?: JSONObject.NULL)
                         objRes.put("image", image_url ?: JSONObject.NULL)
                         objRes.put("external_url", external_url ?: JSONObject.NULL)
-                        objRes.put("attributes", replace_attributes)
-                        objRes.put("metadata", replace_metadata)
+                        objRes.put("attributes", attribute ?: JSONObject.NULL)
+                        objRes.put("metadata", token_info ?: JSONObject.NULL)
 
                         nftArray.put(objRes)
                     }
@@ -414,45 +414,45 @@ suspend fun getNFTsByWalletArray(
     }
     var strQuery =
         "SELECT" +
-            " owner.network AS network," +
-            " collection.collection_id AS collection_id," +
-            " collection.collection_name AS collection_name," +
-            " collection.collection_symbol AS collection_symbol," +
-            " collection.creator AS creator," +
-            " collection.deployment_date AS deployment_date," +
-            " collection.total_supply AS total_supply," +
-            " token.nft_type AS nft_type," +
-            " token.minted_time AS minted_time," +
-            " token.block_number AS block_number," +
-            " owner.owner_account AS owner_account," +
-            " token.token_id AS token_id," +
-            " owner.balance AS balance," +
-            " token.token_uri AS token_uri," +
-            " token.nft_name AS nft_name," +
-            " token.description AS description," +
-            " token.image_url AS image_url," +
-            " token.external_url AS external_url," +
-            " token.attribute AS attribute," +
-            " token.token_info AS token_info" +
-        " FROM " +
-            "nft_owner_table AS owner" +
-        " JOIN " +
-            "nft_token_table AS token " +
-        "ON " +
-            "owner.collection_id = token.collection_id " +
-            "AND " +
+                " owner.network AS network," +
+                " collection.collection_id AS collection_id," +
+                " collection.collection_name AS collection_name," +
+                " collection.collection_symbol AS collection_symbol," +
+                " collection.creator AS creator," +
+                " collection.deployment_date AS deployment_date," +
+                " collection.total_supply AS total_supply," +
+                " token.nft_type AS nft_type," +
+                " token.minted_time AS minted_time," +
+                " token.block_number AS block_number," +
+                " owner.owner_account AS owner_account," +
+                " token.token_id AS token_id," +
+                " owner.balance AS balance," +
+                " token.token_uri AS token_uri," +
+                " token.nft_name AS nft_name," +
+                " token.description AS description," +
+                " token.image_url AS image_url," +
+                " token.external_url AS external_url," +
+                " token.attribute AS attribute," +
+                " token.token_info AS token_info" +
+                " FROM " +
+                "nft_owner_table AS owner" +
+                " JOIN " +
+                "nft_token_table AS token " +
+                "ON " +
+                "owner.collection_id = token.collection_id " +
+                "AND " +
                 "owner.token_id = token.token_id " +
-            "AND " +
+                "AND " +
                 "owner.network = token.network" +
-        " JOIN " +
-            "nft_collection_table AS collection " +
-        "ON " +
-            "token.collection_id = collection.collection_id " +
-            "AND " +
+                " JOIN " +
+                "nft_collection_table AS collection " +
+                "ON " +
+                "token.collection_id = collection.collection_id " +
+                "AND " +
                 "token.network = collection.network " +
-        "WHERE " +
-            "owner.network IN (${net}) " +
-            "AND " +
+                "WHERE " +
+                "owner.network IN (${net}) " +
+                "AND " +
                 "owner.balance != '0'"
     if (account != null) {
         strQuery += " AND owner.owner_account IN ($acc)"
@@ -475,26 +475,26 @@ suspend fun getNFTsByWalletArray(
 
     var sumQuery =
         "SELECT " +
-            " count(*) AS sum" +
-        " FROM" +
-            " nft_owner_table AS owner" +
-        " JOIN" +
-            " nft_token_table AS token" +
-        " ON" +
-            " owner.collection_id = token.collection_id" +
-            " AND" +
+                " count(*) AS sum" +
+                " FROM" +
+                " nft_owner_table AS owner" +
+                " JOIN" +
+                " nft_token_table AS token" +
+                " ON" +
+                " owner.collection_id = token.collection_id" +
+                " AND" +
                 " owner.token_id = token.token_id" +
-            " AND" +
+                " AND" +
                 " owner.network = token.network" +
-        " JOIN" +
-            " nft_collection_table AS collection" +
-        " ON" +
-            " token.collection_id = collection.collection_id" +
-            " AND" +
+                " JOIN" +
+                " nft_collection_table AS collection" +
+                " ON" +
+                " token.collection_id = collection.collection_id" +
+                " AND" +
                 " token.network = collection.network" +
-        " WHERE" +
-            " owner.network IN ($net)" +
-            " AND" +
+                " WHERE" +
+                " owner.network IN ($net)" +
+                " AND" +
                 " owner.balance != '0'"
     if (account != null) {
         sumQuery += " AND owner.owner_account IN ($acc) "
@@ -540,8 +540,8 @@ suspend fun getNFTsByWalletArray(
                         val attribute = getNFT.getString("attribute")
                         val token_info = getNFT.getString("token_info")
 
-                        val replace_attributes = JSONArray(attribute ?: "[]")
-                        val replace_metadata = JSONObject(token_info ?: "{}")
+//                        val replace_attributes = JSONArray(attribute ?: "[]")
+//                        val replace_metadata = JSONObject(token_info ?: "{}")
 
                         objRes.put("network", network)
                         objRes.put("collection_id", collection_id ?: JSONObject.NULL)
@@ -561,8 +561,8 @@ suspend fun getNFTsByWalletArray(
                         objRes.put("description", description ?: JSONObject.NULL)
                         objRes.put("image", image_url ?: JSONObject.NULL)
                         objRes.put("external_url", external_url ?: JSONObject.NULL)
-                        objRes.put("attributes", replace_attributes)
-                        objRes.put("metadata", replace_metadata)
+                        objRes.put("attributes", attribute ?: JSONObject.NULL)
+                        objRes.put("metadata", token_info ?: JSONObject.NULL)
 
                         nftArray.put(objRes)
                     }
@@ -640,93 +640,93 @@ suspend fun getNFTsTransferHistory(
 
     var transferQuery =
         " SELECT" +
-            " transfer.network AS network," +
-            " sales.buyer_account AS buyer_account," +
-            " transfer.`from` AS from_address," +
-            " transfer.`to` AS to_address," +
-            " transfer.collection_id AS collection_id," +
-            " transfer.block_number AS block_number," +
-            " transfer.`timestamp` AS timestamp," +
-            " transfer.transaction_hash AS transaction_hash," +
-            " transfer.log_id AS log_id," +
-            " transfer.token_id AS token_id," +
-            " transfer.amount AS amount," +
-            " sales.currency AS currency," +
-            " sales.currency_symbol AS currency_symbol," +
-            " sales.decimals AS decimals," +
-            " sales.price AS price," +
-            " sales.market AS market," +
-            " sales.sales_info AS sales_info," +
-        " CASE" +
-            " WHEN" +
+                " transfer.network AS network," +
+                " sales.buyer_account AS buyer_account," +
+                " transfer.`from` AS from_address," +
+                " transfer.`to` AS to_address," +
+                " transfer.collection_id AS collection_id," +
+                " transfer.block_number AS block_number," +
+                " transfer.`timestamp` AS timestamp," +
+                " transfer.transaction_hash AS transaction_hash," +
+                " transfer.log_id AS log_id," +
+                " transfer.token_id AS token_id," +
+                " transfer.amount AS amount," +
+                " sales.currency AS currency," +
+                " sales.currency_symbol AS currency_symbol," +
+                " sales.decimals AS decimals," +
+                " sales.price AS price," +
+                " sales.market AS market," +
+                " sales.sales_info AS sales_info," +
+                " CASE" +
+                " WHEN" +
                 " sales.sales_info IS NOT NULL THEN 'sales'" +
-            " ELSE" +
+                " ELSE" +
                 " 'transfer'" +
-        " END AS" +
-            " transaction_type" +
-        " FROM" +
-            " nft_transfer_table AS transfer" +
-        " LEFT OUTER JOIN" +
-            " nft_sales_table AS sales" +
-        " ON" +
-            " transfer.transaction_hash = sales.transaction_hash" +
-        " LEFT JOIN" +
-            " nft_transaction_type_table AS type" +
-        " ON" +
-            " transfer.transaction_hash = type.transaction_hash" +
-        " WHERE" +
-            " transfer.network = '${network}'"
-        if(token_id != null){
-            transferQuery += " AND transfer.token_id = '${token_id}' "
-        }
-        if(collection_id != null){
-            transferQuery += " AND transfer.collection_id= '${collection_id}' "
-        }
-        if(type=="transfer"){
-            transferQuery += "AND type.transaction_type = 'transfer' ORDER BY transfer.block_number"
-        }
-        else if(type=="sales"){
-            transferQuery += "AND type.transaction_type = 'sales' ORDER BY transfer.block_number"
-        }
-        else{
-            transferQuery += " ORDER BY transfer.block_number"
-        }
-        if(sort == "asc"){
-            transferQuery += " asc"
-        } else {
-            transferQuery += " desc"
-        }
-        transferQuery += ", CAST(transfer.token_id AS SIGNED) desc"
-        if (limit != null) {
-            transferQuery += " LIMIT ${limit} OFFSET ${offset}"
-        }
-        println(transferQuery)
+                " END AS" +
+                " transaction_type" +
+                " FROM" +
+                " nft_transfer_table AS transfer" +
+                " LEFT OUTER JOIN" +
+                " nft_sales_table AS sales" +
+                " ON" +
+                " transfer.transaction_hash = sales.transaction_hash" +
+                " LEFT JOIN" +
+                " nft_transaction_type_table AS type" +
+                " ON" +
+                " transfer.transaction_hash = type.transaction_hash" +
+                " WHERE" +
+                " transfer.network = '${network}'"
+    if(token_id != null){
+        transferQuery += " AND transfer.token_id = '${token_id}' "
+    }
+    if(collection_id != null){
+        transferQuery += " AND transfer.collection_id= '${collection_id}' "
+    }
+    if(type=="transfer"){
+        transferQuery += "AND type.transaction_type = 'transfer' ORDER BY transfer.block_number"
+    }
+    else if(type=="sales"){
+        transferQuery += "AND type.transaction_type = 'sales' ORDER BY transfer.block_number"
+    }
+    else{
+        transferQuery += " ORDER BY transfer.block_number"
+    }
+    if(sort == "asc"){
+        transferQuery += " asc"
+    } else {
+        transferQuery += " desc"
+    }
+    transferQuery += ", CAST(transfer.token_id AS SIGNED) desc"
+    if (limit != null) {
+        transferQuery += " LIMIT ${limit} OFFSET ${offset}"
+    }
+    println(transferQuery)
 
     var sumQuery =
         "SELECT" +
-            " count(*) AS sum" +
-        " FROM " +
-            " nft_transfer_table AS transfer" +
-        " LEFT JOIN " +
-            " nft_sales_table AS sales" +
-        " ON " +
-            " transfer.transaction_hash = sales.transaction_hash" +
-        " LEFT JOIN " +
-            " nft_transaction_type_table AS type" +
-        " ON " +
-            " transfer.transaction_hash = type.transaction_hash" +
-        " WHERE " +
-            " transfer.network = '$network'"
-        if (token_id != null) {
-            sumQuery += " AND transfer.token_id = '$token_id' "
-        }
-        if (collection_id != null) {
-            sumQuery += " AND transfer.collection_id = '$collection_id' "
-        }
-        if(type != null){
-            sumQuery += " AND type.transaction_type = '${type}'"
-        }
-        println(sumQuery)
+                " count(*) AS sum" +
+                " FROM " +
+                " nft_transfer_table AS transfer" +
+                " LEFT JOIN " +
+                " nft_sales_table AS sales" +
+                " ON " +
+                " transfer.transaction_hash = sales.transaction_hash" +
+                " LEFT JOIN " +
+                " nft_transaction_type_table AS type" +
+                " ON " +
+                " transfer.transaction_hash = type.transaction_hash" +
+                " WHERE " +
+                " transfer.network = '$network'"
+    if (token_id != null) {
+        sumQuery += " AND transfer.token_id = '$token_id' "
+    }
+    if (collection_id != null) {
+        sumQuery += " AND transfer.collection_id = '$collection_id' "
+    }
+    if(type != null){
+        sumQuery += " AND type.transaction_type = '${type}'"
+    }
+    println(sumQuery)
     try {
         var sum: Int? = null
         if ((token_id == null && collection_id == null) || (limit == null && page_number != null)) {
@@ -836,10 +836,16 @@ suspend fun sendNFT721TransactionAsync(
     val jsonData = JSONObject()
 
     try {
-        val getAddressInfo = getAccountInfoAsync(fromAddress.lowercase())
-        val result = getAddressInfo.getJSONArray("value")
-        val value = result.getJSONObject(0)
-        val privateKey = value.getString("private")
+        val getAddressInfo = getAccountInfoAsync(fromAddress)
+        val privateKey = runCatching {
+            getAddressInfo.getJSONArray("value")
+                .getJSONObject(0)
+                .getString("private")
+        }.getOrElse {
+            // handle error here
+            println("Error while fetching the private key: ${it.message}")
+            null
+        }
 
         val web3j = Web3j.build(HttpService(rpcUrl))
         val credentials =
@@ -919,10 +925,16 @@ suspend fun sendNFT1155TransactionAsync(
     val jsonData = JSONObject()
     networkSettings(network)
     try {
-        val getAddressInfo = getAccountInfoAsync(fromAddress.lowercase())
-        val result = getAddressInfo.getJSONArray("value")
-        val value = result.getJSONObject(0)
-        val privateKey = value.getString("private")
+        val getAddressInfo = getAccountInfoAsync(fromAddress)
+        val privateKey = runCatching {
+            getAddressInfo.getJSONArray("value")
+                .getJSONObject(0)
+                .getString("private")
+        }.getOrElse {
+            // handle error here
+            println("Error while fetching the private key: ${it.message}")
+            null
+        }
         val web3j = Web3j.build(HttpService(rpcUrl))
         val credentials =
             Credentials.create(privateKey)
@@ -1006,10 +1018,16 @@ suspend fun sendNFT721BatchTransactionAsync(
     val jsonData = JSONObject()
     networkSettings(network)
     try {
-        val getAddressInfo = getAccountInfoAsync(fromAddress.lowercase())
-        val result = getAddressInfo.getJSONArray("value")
-        val value = result.getJSONObject(0)
-        val privateKey = value.getString("private")
+        val getAddressInfo = getAccountInfoAsync(fromAddress)
+        val privateKey = runCatching {
+            getAddressInfo.getJSONArray("value")
+                .getJSONObject(0)
+                .getString("private")
+        }.getOrElse {
+            // handle error here
+            println("Error while fetching the private key: ${it.message}")
+            null
+        }
         val web3j = Web3j.build(HttpService(rpcUrl))
         val credentials =
             Credentials.create(privateKey)
@@ -1106,10 +1124,16 @@ suspend fun sendNFT1155BatchTransactionAsync(
     val jsonData = JSONObject()
 
     try {
-        val getAddressInfo = getAccountInfoAsync(fromAddress.lowercase())
-        val result = getAddressInfo.getJSONArray("value")
-        val value = result.getJSONObject(0)
-        val privateKey = value.getString("private")
+        val getAddressInfo = getAccountInfoAsync(fromAddress)
+        val privateKey = runCatching {
+            getAddressInfo.getJSONArray("value")
+                .getJSONObject(0)
+                .getString("private")
+        }.getOrElse {
+            // handle error here
+            println("Error while fetching the private key: ${it.message}")
+            null
+        }
         val web3j = Web3j.build(HttpService(rpcUrl))
         val credentials =
             Credentials.create(privateKey)
@@ -1217,10 +1241,16 @@ suspend fun deployErc721Async(
     val jsonData = JSONObject()
 
     try {
-        val getAddressInfo = getAccountInfoAsync(fromAddress.lowercase())
-        val result = getAddressInfo.getJSONArray("value")
-        val value = result.getJSONObject(0)
-        val privateKey = value.getString("private")
+        val getAddressInfo = getAccountInfoAsync(fromAddress)
+        val privateKey = runCatching {
+            getAddressInfo.getJSONArray("value")
+                .getJSONObject(0)
+                .getString("private")
+        }.getOrElse {
+            // handle error here
+            println("Error while fetching the private key: ${it.message}")
+            null
+        }
         val web3j = Web3j.build(HttpService(rpcUrl))
         val credentials =
             Credentials.create(privateKey)
@@ -1328,10 +1358,16 @@ suspend fun mintErc721Async(
     val jsonData = JSONObject()
 
     try {
-        val getAddressInfo = getAccountInfoAsync(fromAddress.lowercase())
-        val result = getAddressInfo.getJSONArray("value")
-        val value = result.getJSONObject(0)
-        val privateKey = value.getString("private")
+        val getAddressInfo = getAccountInfoAsync(fromAddress)
+        val privateKey = runCatching {
+            getAddressInfo.getJSONArray("value")
+                .getJSONObject(0)
+                .getString("private")
+        }.getOrElse {
+            // handle error here
+            println("Error while fetching the private key: ${it.message}")
+            null
+        }
         val web3j = Web3j.build(HttpService(rpcUrl))
         val credentials =
             Credentials.create(privateKey)
