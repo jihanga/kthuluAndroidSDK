@@ -6,6 +6,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import org.web3j.abi.FunctionEncoder
+import org.web3j.abi.FunctionReturnDecoder
+import org.web3j.abi.TypeReference
 import org.web3j.abi.datatypes.Address
 import org.web3j.abi.datatypes.DynamicArray
 import org.web3j.abi.datatypes.DynamicBytes
@@ -15,6 +17,7 @@ import org.web3j.abi.datatypes.Utf8String
 import org.web3j.abi.datatypes.generated.Uint256
 import org.web3j.abi.datatypes.generated.Uint8
 import org.web3j.protocol.Web3j
+import org.web3j.protocol.core.DefaultBlockParameterName
 import org.web3j.protocol.core.methods.request.Transaction
 import org.web3j.protocol.http.HttpService
 import org.web3j.utils.Convert
@@ -198,7 +201,15 @@ suspend fun getEstimateGas(
                 // Ensure amount is a valid number
                 if (BigDecimal(tokenAmount) <= BigDecimal.ZERO) BigInteger.ZERO
 
-                var decimals = getTokenInfoAsync(network, tokenAddress).getString("decimals")
+                val decimalsFunction = Function("decimals", emptyList(), listOf(object : TypeReference<Uint8>() {}))
+                val encodedDecimalsFunction = FunctionEncoder.encode(decimalsFunction)
+                val decimalsResponse = web3.ethCall(
+                    Transaction.createEthCallTransaction(null, tokenAddress, encodedDecimalsFunction),
+                    DefaultBlockParameterName.LATEST
+                ).send()
+                val decimalsOutput =
+                    FunctionReturnDecoder.decode(decimalsResponse.result, decimalsFunction.outputParameters)
+                val decimals = (decimalsOutput[0].value as BigInteger).toInt()
                 val decimalMultiplier = BigDecimal.TEN.pow(decimals.toInt())
                 val tokenAmount = BigDecimal(tokenAmount).multiply(decimalMultiplier).toBigInteger()
 
