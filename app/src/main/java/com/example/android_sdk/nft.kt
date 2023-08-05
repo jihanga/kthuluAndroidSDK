@@ -376,6 +376,7 @@ suspend fun getNFTsByWallet(
 
         nftData.put("result", "OK")
         nftData.put("sum", sum)
+        val sort = sort ?: "desc" // 기본값을 "default_value"로 지정하거나 원하는 대체값을 사용하세요.
         nftData.put("sort", sort)
         nftData.put("page_count", page_count)
         nftData.put("value", nftArray)
@@ -601,6 +602,7 @@ suspend fun getNFTsByWalletArray(
 
         nftData.put("result", "OK")
         nftData.put("sum", sum)
+        val sort = sort ?: "desc" // 기본값을 "default_value"로 지정하거나 원하는 대체값을 사용하세요.
         nftData.put("sort", sort)
         nftData.put("page_count", page_count)
         nftData.put("value", nftArray)
@@ -815,6 +817,7 @@ suspend fun getNFTsTransferHistory(
 
         transferData.put("result", "OK")
         transferData.put("sum", sum)
+        val sort = sort ?: "desc" // 기본값을 "default_value"로 지정하거나 원하는 대체값을 사용하세요.
         transferData.put("sort", sort)
         transferData.put("page_count", page_count)
         transferData.put("value", transactionArray)
@@ -822,6 +825,136 @@ suspend fun getNFTsTransferHistory(
     catch (e: Exception){
         transferData.put("result", "FAIL")
         transferData.put("error", e.message)
+    }
+}
+//숨김테이블 조회
+suspend fun getTrash(
+    network: Array<String>,
+    owner: String,
+    sort: String ?= null,
+    limit: Int ?= null,
+    page_number: Int ?= null
+): JSONObject = withContext(Dispatchers.IO){
+    val dbConnector = DBConnector()
+    dbConnector.connect()
+    val connection = dbConnector.getConnection()
+    val trashData = JSONObject()
+    val trashArray = JSONArray()
+
+    val net = network.joinToString("','", "'", "'")
+
+    var offset = if (page_number != null && limit != null) {
+        (page_number - 1) * limit
+    } else {
+        0 // 또는 적절한 기본값 설정
+    }
+    if(page_number==null || page_number==0 || page_number==1){
+        offset = 0
+    }
+
+    var trashQuery =
+        "SELECT " +
+                "network, " +
+                "owner, " +
+                "account, " +
+                "collection_id, " +
+                "token_id " +
+                "FROM " +
+                "nft_trash_table " +
+                "WHERE " +
+                "network IN (${net}) " +
+                "AND " +
+                "owner = '${owner}'"
+    trashQuery += " ORDER BY idx"
+    if (sort == "asc") {
+        trashQuery += " asc"
+    } else {
+        trashQuery += " desc"
+    }
+
+    if (limit != null) {
+        trashQuery += " LIMIT $limit OFFSET $offset"
+    }
+
+    var sumQuery =
+        "SELECT" +
+                " count(*) AS sum" +
+                " FROM " +
+                " nft_trash_table" +
+                " WHERE " +
+                "network IN (${net}) " +
+                "AND " +
+                "owner = '${owner}'"
+    println(sumQuery)
+    print(trashQuery)
+
+    try {
+        var sum: Int? = null
+
+        if (connection != null) {
+            val dbQueryExector = DBQueryExector(connection)
+            val getTransaction1: ResultSet? = dbQueryExector.executeQuery(trashQuery)
+            val getSum: ResultSet? = dbQueryExector.executeQuery(sumQuery)
+            if (getTransaction1 != null) {
+                try {
+                    while (getTransaction1.next()) {
+                        val jsonData = JSONObject()
+
+                        val network = getTransaction1.getString("network")
+                        val owner = getTransaction1.getString("owner")
+                        val account = getTransaction1.getString("account")
+                        val collection_id = getTransaction1.getString("collection_id")
+                        val token_id = getTransaction1.getString("token_id")
+
+
+                        jsonData.put("network", network)
+                        jsonData.put("owner", owner)
+                        jsonData.put("account", account)
+                        jsonData.put("collection_id", collection_id)
+                        jsonData.put("token_id", token_id)
+
+                        trashArray.put(jsonData)
+                    }
+                }
+                catch (ex: SQLException) {
+                    ex.printStackTrace()
+                } finally {
+                    getTransaction1.close()
+                }
+            }
+            if(getSum != null){
+                try {
+                    while (getSum.next()) {
+                        sum = getSum.getInt("sum")
+                    }
+                }
+                catch (ex: SQLException){
+                    ex.printStackTrace()
+                }
+                finally {
+                    getSum.close()
+                }
+            }
+        }
+        dbConnector.disconnect()
+
+        val limit: Int? = limit
+        val page_count: Int? = if (sum != null && limit != null) {
+            Math.ceil(sum.toDouble() / limit.toDouble()).toInt()
+        } else {
+            0
+        }
+
+        trashData.put("result", "OK")
+        trashData.put("sum", sum)
+        val sort = sort ?: "desc" // 기본값을 "default_value"로 지정하거나 원하는 대체값을 사용하세요.
+        trashData.put("sort", sort)
+        trashData.put("page_count", page_count)
+        trashData.put("value", trashArray)
+    }
+    catch (e: Exception){
+        trashData.put("result", "FAIL")
+        trashData.put("error", e.message)
     }
 }
 
