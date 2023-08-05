@@ -171,7 +171,8 @@ suspend fun getEstimateGas(
     owner: String? = null,
     baseURI: String? = null,
     uriType: String? = null,
-    tokenURI: String? = null
+    tokenURI: String? = null,
+    batchTokenURI: Array<String>? = null,
 ): BigInteger = withContext(Dispatchers.IO) {
     networkSettings(network)
     var result = BigInteger.ZERO;
@@ -373,8 +374,8 @@ suspend fun getEstimateGas(
         "deployERC721" ->
             if (name != null && symbol != null && fromAddress != null && owner != null && baseURI != null && uriType != null) {
                 val function = Function(
-                    "deployWrapped721",
-                    listOf(Utf8String(name), Utf8String(symbol), Utf8String(baseURI), Address(owner), Uint8(BigInteger(uriType))),
+                    "deployedERC721",
+                    listOf(Utf8String(name), Utf8String(symbol), Utf8String(baseURI), Uint8(BigInteger(uriType)), Address(owner)),
                     emptyList()
                 )
                 val encodedFunction = FunctionEncoder.encode(function)
@@ -395,11 +396,118 @@ suspend fun getEstimateGas(
                     result = BigInteger.ZERO
                 }
             }
+        "deployERC1155" ->
+            if (name != null && symbol != null && fromAddress != null && owner != null && baseURI != null && uriType != null) {
+                val function = Function(
+                    "deployedERC1155",
+                    listOf(Utf8String(name), Utf8String(symbol), Utf8String(baseURI), Uint8(BigInteger(uriType)), Address(owner)),
+                    emptyList()
+                )
+                val encodedFunction = FunctionEncoder.encode(function)
+
+                try {
+                    result = web3.ethEstimateGas(
+                        Transaction.createFunctionCallTransaction(
+                            fromAddress,
+                            BigInteger.ONE,
+                            gasPrice,
+                            BigInteger.ZERO, // temporary gasLimit
+                            erc1155DeployContractAddress,
+                            encodedFunction // data
+                        )
+                    ).send().amountUsed
+                } catch (ex: Exception) {
+                    // Handle the exception appropriately
+                    result = BigInteger.ZERO
+                }
+            }
         "mintERC721" ->
             if (fromAddress != null && toAddress != null && tokenURI != null && tokenId != null && tokenAddress != null) {
                 val function = Function(
                     "mint",
                     listOf(Address(toAddress), Uint256(BigInteger(tokenId)), Utf8String(tokenURI)),
+                    emptyList()
+                )
+                val encodedFunction = FunctionEncoder.encode(function)
+
+                try {
+                    result = web3.ethEstimateGas(
+                        Transaction.createFunctionCallTransaction(
+                            fromAddress,
+                            BigInteger.ONE,
+                            gasPrice,
+                            BigInteger.ZERO, // temporary gasLimit
+                            tokenAddress,
+                            encodedFunction // data
+                        )
+                    ).send().amountUsed
+                } catch (ex: Exception) {
+                    // Handle the exception appropriately
+                    result = BigInteger.ZERO
+                }
+            }
+        "mintERC1155" ->
+            if (fromAddress != null && toAddress != null && tokenURI != null && tokenId != null && tokenAddress != null && tokenAmount!= null) {
+                val function = Function(
+                    "mint",
+                    listOf(Address(toAddress), Uint256(BigInteger(tokenId)), Uint256(BigInteger(tokenAmount)), Utf8String(tokenURI), DynamicBytes(byteArrayOf(0))),
+                    emptyList()
+                )
+                val encodedFunction = FunctionEncoder.encode(function)
+
+                try {
+                    result = web3.ethEstimateGas(
+                        Transaction.createFunctionCallTransaction(
+                            fromAddress,
+                            BigInteger.ONE,
+                            gasPrice,
+                            BigInteger.ZERO, // temporary gasLimit
+                            tokenAddress,
+                            encodedFunction // data
+                        )
+                    ).send().amountUsed
+                } catch (ex: Exception) {
+                    // Handle the exception appropriately
+                    result = BigInteger.ZERO
+                }
+            }
+        "batchMintERC721" ->
+            if (fromAddress != null && toAddress != null && batchTokenURI != null && batchTokenId != null && tokenAddress != null) {
+                val a = batchTokenId.map { Uint256(BigInteger(it)) }
+                val b = batchTokenURI.map { Uint256(BigInteger(it)) }
+
+                val function = Function(
+                    "mintBatch",
+                    listOf(Address(toAddress), DynamicArray(a), DynamicArray(b), DynamicBytes(byteArrayOf(0))),
+                    emptyList()
+                )
+                val encodedFunction = FunctionEncoder.encode(function)
+
+                try {
+                    result = web3.ethEstimateGas(
+                        Transaction.createFunctionCallTransaction(
+                            fromAddress,
+                            BigInteger.ONE,
+                            gasPrice,
+                            BigInteger.ZERO, // temporary gasLimit
+                            tokenAddress,
+                            encodedFunction // data
+                        )
+                    ).send().amountUsed
+                } catch (ex: Exception) {
+                    // Handle the exception appropriately
+                    result = BigInteger.ZERO
+                }
+            }
+        "batchMintERC1155" ->
+            if (fromAddress != null && toAddress != null && batchTokenURI != null && batchTokenId != null && tokenAddress != null && batchTokenAmount!= null) {
+                val a = batchTokenId.map { Uint256(BigInteger(it)) }
+                val b = batchTokenAmount.map { Uint256(BigInteger(it)) }
+                val c = batchTokenURI.map { Uint256(BigInteger(it)) }
+
+                val function = Function(
+                    "mintBatch",
+                    listOf(Address(toAddress), DynamicArray(a), DynamicArray(b), DynamicArray(c), DynamicBytes(byteArrayOf(0))),
                     emptyList()
                 )
                 val encodedFunction = FunctionEncoder.encode(function)
