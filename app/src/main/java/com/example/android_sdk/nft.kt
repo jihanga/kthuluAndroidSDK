@@ -63,7 +63,7 @@ import java.sql.Statement
 //    var value: String?,
 //    var trait_type: String?
 //)
-suspend fun setNFTsTrash(
+suspend fun setNFTsHide(
     network: String,
     owner: String,
     account: String,
@@ -73,48 +73,47 @@ suspend fun setNFTsTrash(
     val dbConnector = DBConnector()
     dbConnector.connect()
     val connection = dbConnector.getConnection()
-    val trashData = JSONObject()
+    val hideData = JSONObject()
 
     try {
-        val trashQuery =
+        val insertQuery =
             "INSERT INTO " +
-                    "nft_trash_table (network, account, collection_id, token_id, owner) " +
+                    "nft_hide_table (network, account, collection_id, token_id, owner) " +
                     "VALUES " +
                     "('$network', '$account', '$collection_id', '$token_id', '$owner')"
 
-        println(trashQuery)
+        println(insertQuery)
 
         val statement: Statement = connection!!.createStatement()
-        statement.executeUpdate(trashQuery)
-        trashData.put("result", "OK")
+        statement.executeUpdate(insertQuery)
+        hideData.put("result", "OK")
     } catch (e: SQLException) {
         e.printStackTrace()
-        trashData.put("result", "FAIL")
+        hideData.put("result", "FAIL")
         if (e.message?.contains("Duplicate entry") == true) {
-            trashData.put("reason", "Duplicate entry")
+            hideData.put("reason", "Duplicate entry")
         }
         else if (e.message?.contains("Table not found") == true) {
-            trashData.put("reason", "Table not found")
+            hideData.put("reason", "Table not found")
         }
         else if (e.message?.contains("Column not found") == true) {
-            trashData.put("reason", "Column not found")
+            hideData.put("reason", "Column not found")
         }
         else if (e.message?.contains("Connection timeout") == true) {
-            trashData.put("reason", "Connection timeout")
+            hideData.put("reason", "Connection timeout")
         }
         else if (e.message?.contains("Connection refused") == true) {
-            trashData.put("reason", "Connection refused")
+            hideData.put("reason", "Connection refused")
         }
         else {
-            trashData.put("reason", e.printStackTrace())
+            hideData.put("reason", e.printStackTrace())
         }
     } finally {
         connection?.close()
     }
-
-    trashData
+    hideData
 }
-suspend fun deleteNFTsTrash(
+suspend fun deleteNFTsHide(
     network: String,
     owner: String,
     account: String,
@@ -124,12 +123,12 @@ suspend fun deleteNFTsTrash(
     val dbConnector = DBConnector()
     dbConnector.connect()
     val connection = dbConnector.getConnection()
-    val trashData = JSONObject()
+    val hideData = JSONObject()
 
     try {
         val deleteQuery =
             "DELETE FROM " +
-                    "nft_trash_table " +
+                    "nft_hide_table " +
                     "WHERE " +
                     "network = '$network' " +
                     "AND " +
@@ -147,17 +146,17 @@ suspend fun deleteNFTsTrash(
         val rowsAffected = statement.executeUpdate(deleteQuery)
 
         if (rowsAffected > 0) {
-            trashData.put("result", "OK")
+            hideData.put("result", "OK")
         } else {
-            trashData.put("result", "FAIL")
+            hideData.put("result", "FAIL1")
         }
     } catch (e: SQLException) {
         e.printStackTrace()
-        trashData.put("result", "FAIL")
+        hideData.put("result", "FAIL2")
     } finally {
         connection?.close()
     }
-    trashData
+    hideData
 }
 
 @SuppressLint("SuspiciousIndentation")
@@ -235,7 +234,7 @@ suspend fun getNFTsByWallet(
     if (collection_id != null) {
         strQuery += " AND owner.collection_id = '$collection_id'"
     }
-    strQuery += " AND NOT EXISTS ( SELECT 1 FROM nft_trash_table AS trash JOIN users_table AS users ON users.owner_eigenvalue = trash.owner WHERE trash.network = owner.network AND trash.account = owner.owner_account AND owner.owner_account = users.user_account AND trash.token_id = owner.token_id AND trash.collection_id = owner.collection_id AND trash.owner = users.owner_eigenvalue)"
+    strQuery += " AND NOT EXISTS ( SELECT 1 FROM nft_hide_table AS hide JOIN users_table AS users ON users.owner_eigenvalue = hide.owner WHERE hide.network = owner.network AND hide.account = owner.owner_account AND owner.owner_account = users.user_account AND hide.token_id = owner.token_id AND hide.collection_id = owner.collection_id AND hide.owner = users.owner_eigenvalue)"
     strQuery += " ORDER BY token.block_number"
     if (sort == " asc") {
         strQuery += " asc"
@@ -277,7 +276,7 @@ suspend fun getNFTsByWallet(
     if (collection_id != null) {
         sumQuery += " AND owner.collection_id = '$collection_id' "
     }
-    sumQuery += " AND NOT EXISTS ( SELECT 1 FROM nft_trash_table AS trash JOIN users_table AS users ON users.owner_eigenvalue = trash.owner WHERE trash.network = owner.network AND trash.account = owner.owner_account AND owner.owner_account = users.user_account AND trash.token_id = owner.token_id AND trash.collection_id = owner.collection_id AND trash.owner = users.owner_eigenvalue)"
+    sumQuery += " AND NOT EXISTS ( SELECT 1 FROM nft_hide_table AS hide JOIN users_table AS users ON users.owner_eigenvalue = hide.owner WHERE hide.network = owner.network AND hide.account = owner.owner_account AND owner.owner_account = users.user_account AND hide.token_id = owner.token_id AND hide.collection_id = owner.collection_id AND hide.owner = users.owner_eigenvalue)"
 
     println(sumQuery)
     try{
@@ -461,7 +460,7 @@ suspend fun getNFTsByWalletArray(
     if (collection_id != null) {
         strQuery += " AND owner.collection_id = '$collection_id'"
     }
-    strQuery += " AND NOT EXISTS ( SELECT 1 FROM nft_trash_table AS trash JOIN users_table AS users ON users.owner_eigenvalue = trash.owner WHERE trash.network = owner.network AND trash.account = owner.owner_account AND owner.owner_account = users.user_account AND trash.token_id = owner.token_id AND trash.collection_id = owner.collection_id AND trash.owner = users.owner_eigenvalue)"
+    strQuery += " AND NOT EXISTS ( SELECT 1 FROM nft_hide_table AS hide JOIN users_table AS users ON users.owner_eigenvalue = hide.owner WHERE hide.network = owner.network AND hide.account = owner.owner_account AND owner.owner_account = users.user_account AND hide.token_id = owner.token_id AND hide.collection_id = owner.collection_id AND hide.owner = users.owner_eigenvalue)"
     strQuery += " ORDER BY token.block_number"
     if (sort == "asc") {
         strQuery += " asc"
@@ -503,7 +502,7 @@ suspend fun getNFTsByWalletArray(
     if (collection_id != null) {
         sumQuery += " AND owner.collection_id = '$collection_id' "
     }
-    sumQuery += " AND NOT EXISTS ( SELECT 1 FROM nft_trash_table AS trash JOIN users_table AS users ON users.owner_eigenvalue = trash.owner WHERE trash.network = owner.network AND trash.account = owner.owner_account AND owner.owner_account = users.user_account AND trash.token_id = owner.token_id AND trash.collection_id = owner.collection_id AND trash.owner = users.owner_eigenvalue)"
+    sumQuery += " AND NOT EXISTS ( SELECT 1 FROM nft_hide_table AS hide JOIN users_table AS users ON users.owner_eigenvalue = hide.owner WHERE hide.network = owner.network AND hide.account = owner.owner_account AND owner.owner_account = users.user_account AND hide.token_id = owner.token_id AND hide.collection_id = owner.collection_id AND hide.owner = users.owner_eigenvalue)"
 
     println(sumQuery)
     try{
@@ -828,7 +827,7 @@ suspend fun getNFTsTransferHistory(
     }
 }
 //숨김테이블 조회
-suspend fun getTrash(
+suspend fun getNFTsHide(
     network: Array<String>,
     owner: String,
     sort: String ?= null,
@@ -838,8 +837,8 @@ suspend fun getTrash(
     val dbConnector = DBConnector()
     dbConnector.connect()
     val connection = dbConnector.getConnection()
-    val trashData = JSONObject()
-    val trashArray = JSONArray()
+    val hideData = JSONObject()
+    val hideArray = JSONArray()
 
     val net = network.joinToString("','", "'", "'")
 
@@ -852,7 +851,7 @@ suspend fun getTrash(
         offset = 0
     }
 
-    var trashQuery =
+    var hideQuery =
         "SELECT " +
                 "network, " +
                 "owner, " +
@@ -860,40 +859,40 @@ suspend fun getTrash(
                 "collection_id, " +
                 "token_id " +
                 "FROM " +
-                "nft_trash_table " +
+                "nft_hide_table " +
                 "WHERE " +
                 "network IN (${net}) " +
                 "AND " +
                 "owner = '${owner}'"
-    trashQuery += " ORDER BY idx"
+    hideQuery += " ORDER BY idx"
     if (sort == "asc") {
-        trashQuery += " asc"
+        hideQuery += " asc"
     } else {
-        trashQuery += " desc"
+        hideQuery += " desc"
     }
 
     if (limit != null) {
-        trashQuery += " LIMIT $limit OFFSET $offset"
+        hideQuery += " LIMIT $limit OFFSET $offset"
     }
 
     var sumQuery =
         "SELECT" +
                 " count(*) AS sum" +
                 " FROM " +
-                " nft_trash_table" +
+                " nft_hide_table" +
                 " WHERE " +
                 "network IN (${net}) " +
                 "AND " +
                 "owner = '${owner}'"
     println(sumQuery)
-    print(trashQuery)
+    print(hideQuery)
 
     try {
         var sum: Int? = null
 
         if (connection != null) {
             val dbQueryExector = DBQueryExector(connection)
-            val getTransaction1: ResultSet? = dbQueryExector.executeQuery(trashQuery)
+            val getTransaction1: ResultSet? = dbQueryExector.executeQuery(hideQuery)
             val getSum: ResultSet? = dbQueryExector.executeQuery(sumQuery)
             if (getTransaction1 != null) {
                 try {
@@ -913,7 +912,7 @@ suspend fun getTrash(
                         jsonData.put("collection_id", collection_id)
                         jsonData.put("token_id", token_id)
 
-                        trashArray.put(jsonData)
+                        hideArray.put(jsonData)
                     }
                 }
                 catch (ex: SQLException) {
@@ -945,16 +944,16 @@ suspend fun getTrash(
             0
         }
 
-        trashData.put("result", "OK")
-        trashData.put("sum", sum)
+        hideData.put("result", "OK")
+        hideData.put("sum", sum)
         val sort = sort ?: "desc" // 기본값을 "default_value"로 지정하거나 원하는 대체값을 사용하세요.
-        trashData.put("sort", sort)
-        trashData.put("page_count", page_count)
-        trashData.put("value", trashArray)
+        hideData.put("sort", sort)
+        hideData.put("page_count", page_count)
+        hideData.put("value", hideArray)
     }
     catch (e: Exception){
-        trashData.put("result", "FAIL")
-        trashData.put("error", e.message)
+        hideData.put("result", "FAIL")
+        hideData.put("error", e.message)
     }
 }
 
