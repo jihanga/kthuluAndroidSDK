@@ -628,6 +628,7 @@ suspend fun getTokenHistoryAsync(
         " `to`," +
         " amount," +
         " gas_used, " +
+        " (SELECT token_symbol FROM token_table WHERE network ='$network' AND token_address ='$token_address' LIMIT 1) AS symbol, " +
         " (SELECT decimals FROM token_table WHERE network ='$network' AND token_address ='$token_address' LIMIT 1) AS decimals " +
         "FROM " +
         " token_transfer_table " +
@@ -653,6 +654,7 @@ suspend fun getTokenHistoryAsync(
                     val to = getResult.getString("to")
                     val amount = getResult.getString("amount")
                     val gas_used = getResult.getString("gas_used")
+                    val symbol = getResult.getString("symbol")
                     val decimals = getResult.getString("decimals")
 
                     // Select data json type
@@ -665,6 +667,7 @@ suspend fun getTokenHistoryAsync(
                     jsonData.put("to", to)
                     jsonData.put("amount", amount)
                     jsonData.put("gas_used", gas_used)
+                    jsonData.put("symbol", symbol)
                     jsonData.put("decimals", decimals)
 
                     resultArray.put(jsonData)
