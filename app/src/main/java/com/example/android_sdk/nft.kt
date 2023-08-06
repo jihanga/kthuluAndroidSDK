@@ -78,9 +78,26 @@ suspend fun setNFTsHide(
     try {
         val insertQuery =
             "INSERT INTO " +
-                    "nft_hide_table (network, account, collection_id, token_id, owner) " +
-                    "VALUES " +
-                    "('$network', '$account', '$collection_id', '$token_id', '$owner')"
+                    "nft_hide_table (network, account, collection_id, token_id, owner, image_url, collection_name, nft_name) " +
+                    "SELECT " +
+                    "'${network}', " +
+                    "'${account}', " +
+                    "'${collection_id}', " +
+                    "'${token_id}', " +
+                    "'${owner}', " +
+                    "token.image_url AS image_url, " +
+                    "collection.collection_name AS collection_name , " +
+                    "token.nft_name AS nft_name " +
+                    "FROM " +
+                    "nft_token_table AS token " +
+                    "JOIN " +
+                    "nft_collection_table AS collection " +
+                    "ON " +
+                    "token.collection_id = collection.collection_id " +
+                    "WHERE " +
+                    "token.collection_id = '${collection_id}' " +
+                    "AND " +
+                    "token.token_id = '${token_id}'"
 
         println(insertQuery)
 
@@ -853,17 +870,20 @@ suspend fun getNFTsHide(
 
     var hideQuery =
         "SELECT " +
-                "network, " +
-                "owner, " +
-                "account, " +
-                "collection_id, " +
-                "token_id " +
+                "hide.network AS network, " +
+                "hide.owner AS owner, " +
+                "hide.account AS account, " +
+                "hide.collection_id AS collection_id, " +
+                "hide.token_id AS token_id, " +
+                "hide.image_url AS image_url, " +
+                "hide.collection_name AS collection_name, " +
+                "hide.nft_name AS nft_name " +
                 "FROM " +
-                "nft_hide_table " +
+                "nft_hide_table AS hide " +
                 "WHERE " +
-                "network IN (${net}) " +
+                "hide.network IN (${net}) " +
                 "AND " +
-                "owner = '${owner}'"
+                "hide.owner = '${owner}'"
     hideQuery += " ORDER BY idx"
     if (sort == "asc") {
         hideQuery += " asc"
@@ -904,13 +924,18 @@ suspend fun getNFTsHide(
                         val account = getTransaction1.getString("account")
                         val collection_id = getTransaction1.getString("collection_id")
                         val token_id = getTransaction1.getString("token_id")
-
+                        val collection_name = getTransaction1.getString("collection_name")
+                        val image_url = getTransaction1.getString("image_url")
+                        val nft_name = getTransaction1.getString("nft_name")
 
                         jsonData.put("network", network)
                         jsonData.put("owner", owner)
                         jsonData.put("account", account)
                         jsonData.put("collection_id", collection_id)
                         jsonData.put("token_id", token_id)
+                        jsonData.put("collection_name", collection_name)
+                        jsonData.put("image", image_url)
+                        jsonData.put("name", nft_name)
 
                         hideArray.put(jsonData)
                     }
