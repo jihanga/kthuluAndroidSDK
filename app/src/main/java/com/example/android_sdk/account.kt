@@ -621,20 +621,20 @@ suspend fun getTokenHistoryAsync(
 
     val query =
         "SELECT " +
-                "network," +
-                " token_address," +
-                " block_number," +
-                " timestamp," +
-                " transaction_hash," +
-                " `from`," +
-                " `to`," +
-                " amount," +
-                " gas_used " +
-                " (SELECT decimals FROM token_table WHERE t.network ='$network' AND t.t.token_address ='$token_address' LIMIT 1)"
-                "FROM " +
-                "token_transfer_table t" +
-                "WHERE " +
-                "network = '$network' AND token_address = '$token_address' AND (`from` ='$owner_account' OR `to` ='$owner_account')"
+        " network," +
+        " token_address," +
+        " block_number," +
+        " timestamp," +
+        " transaction_hash," +
+        " `from`," +
+        " `to`," +
+        " amount," +
+        " gas_used " +
+        " (SELECT decimals FROM token_table WHERE t.network ='$network' AND t.t.token_address ='$token_address' LIMIT 1) AS decimals " +
+        "FROM " +
+        " token_transfer_table t" +
+        "WHERE " +
+        " network = '$network' AND token_address = '$token_address' AND (`from` ='$owner_account' OR `to` ='$owner_account')"
 
     if (connection != null) {
         val dbQueryExector = DBQueryExector(connection)
