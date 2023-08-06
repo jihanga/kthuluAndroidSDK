@@ -22,7 +22,6 @@ suspend fun account() = runBlocking<Unit> {
         val owner = "abcuser"
 
         // Create accounts asynchronously
-
 //        var createAccounts = async { createAccountsAsync(networkArray) }.await()
 //        println(
 //            """
@@ -290,16 +289,10 @@ suspend fun account() = runBlocking<Unit> {
 //        ]
 //         */
 
-        // Get mainnet coin balance asynchronously
-        val getTokenList = async {
-            getTokenListAsync(
-                "polygon",
-                "0x000555FcdDeE9925D9176C2a63867305a92667BE"
-            )
-        }.await()
+        var getTokenList = getTokenListAsync("polygon", "0xec4ec414c1f6a0759e5d184e17db45ccd87e09fd")
         println(
             """
-            getTokenList:
+            Get TokenList:
             ${getTokenList}
             """.trimIndent()
         )
@@ -347,7 +340,7 @@ suspend fun createAccountsAsync(
         saveData.put("mnemonic", encrypt(mnemonic))
         saveMainNet.put(saveData)
 
-        saveData(credentials.address, saveMainNet.toString())
+        saveData(credentials.address.lowercase(), saveMainNet.toString())
 
         resultData.put("result", "OK")
         resultData.put("value", resultArray)
@@ -791,3 +784,4 @@ suspend fun getTokenListAsync(
     dbConnector.disconnect()
     resultData
 }
+
