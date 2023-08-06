@@ -654,6 +654,7 @@ suspend fun getTokenHistoryAsync(
                     val to = getTransfer.getString("to")
                     val amount = getTransfer.getString("amount")
                     val gas_used = getTransfer.getString("gas_used")
+                    val decimals = getTransfer.getString("decimals")
 
                     // Select data json type
                     jsonData.put("network", network)
@@ -665,6 +666,7 @@ suspend fun getTokenHistoryAsync(
                     jsonData.put("to", to)
                     jsonData.put("amount", amount)
                     jsonData.put("gas_used", gas_used)
+                    jsonData.put("decimals", decimals)
 
                     transferArray.put(jsonData)
                 }
