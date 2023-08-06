@@ -22,7 +22,6 @@ suspend fun account() = runBlocking<Unit> {
         val owner = "abcuser"
 
         // Create accounts asynchronously
-
 //        var createAccounts = async { createAccountsAsync(networkArray) }.await()
 //        println(
 //            """
@@ -181,14 +180,14 @@ suspend fun account() = runBlocking<Unit> {
 //        }
 //         */
 //
-//        // Get token history asynchronously
-//        val getTokenTransferHistory = async { getTokenHistoryAsync(networkString, account, token_address) }.await()
-//        println(
-//            """
-//            getTokenTransferHistory:
-//            ${getTokenTransferHistory}
-//            """.trimIndent()
-//        )
+        // Get token history asynchronously
+        val getTokenTransferHistory = async { getTokenHistoryAsync("polygon", "0xeC4eC414c1f6a0759e5d184E17dB45cCd87E09FD", "0x96856126a6bb4870cdd3e179004cd18cef569044") }.await()
+        println(
+            """
+            getTokenTransferHistory:
+            ${getTokenTransferHistory}
+            """.trimIndent()
+        )
 //        /**
 //         * getTokenHistoryAsync
 //        [
@@ -290,16 +289,10 @@ suspend fun account() = runBlocking<Unit> {
 //        ]
 //         */
 
-        // Get mainnet coin balance asynchronously
-        val getTokenList = async {
-            getTokenListAsync(
-                "polygon",
-                "0x000555FcdDeE9925D9176C2a63867305a92667BE"
-            )
-        }.await()
+        var getTokenList = getTokenListAsync("polygon", "0xec4ec414c1f6a0759e5d184e17db45ccd87e09fd")
         println(
             """
-            getTokenList:
+            Get TokenList:
             ${getTokenList}
             """.trimIndent()
         )
@@ -347,7 +340,7 @@ suspend fun createAccountsAsync(
         saveData.put("mnemonic", encrypt(mnemonic))
         saveMainNet.put(saveData)
 
-        saveData(credentials.address, saveMainNet.toString())
+        saveData(credentials.address.lowercase(), saveMainNet.toString())
 
         resultData.put("result", "OK")
         resultData.put("value", resultArray)
@@ -527,7 +520,7 @@ suspend fun getBalanceAsync(
     resultData.put("value", resultArray)
 
     val getBalance =
-        "SELECT balance, (SELECT decimals FROM token_table WHERE t.token_address ='$token_address' LIMIT 1) AS decimals FROM token_owner_table t WHERE network = '$network' AND owner_account = '$owner_account' AND token_address = '$token_address'"
+        "SELECT balance, (SELECT decimals FROM token_table WHERE t.network ='$network' AND t.t.token_address ='$token_address' LIMIT 1) FROM token_owner_table t WHERE network = '$network' AND owner_account = '$owner_account' AND token_address = '$token_address'"
     if (connection != null) {
         val dbQueryExector = DBQueryExector(connection)
         val dbData: ResultSet? = dbQueryExector.executeQuery(getBalance)
@@ -627,7 +620,21 @@ suspend fun getTokenHistoryAsync(
     resultData.put("value", resultArray)
 
     val query =
-        "SELECT network, token_address, block_number, timestamp, transaction_hash, `from`, `to`, amount, gas_used FROM token_transfer_table WHERE network = '$network' AND token_address = '$token_address' AND (`from` ='$owner_account' OR `to` ='$owner_account')"
+        "SELECT " +
+        " network," +
+        " token_address," +
+        " block_number," +
+        " timestamp," +
+        " transaction_hash," +
+        " `from`," +
+        " `to`," +
+        " amount," +
+        " gas_used, " +
+        " (SELECT decimals FROM token_table WHERE network ='$network' AND token_address ='$token_address' LIMIT 1) AS decimals " +
+        "FROM " +
+        " token_transfer_table " +
+        "WHERE " +
+        " network = '$network' AND token_address = '$token_address' AND (`from` ='$owner_account' OR `to` ='$owner_account')"
 
     if (connection != null) {
         val dbQueryExector = DBQueryExector(connection)
@@ -647,6 +654,7 @@ suspend fun getTokenHistoryAsync(
                     val to = getTransfer.getString("to")
                     val amount = getTransfer.getString("amount")
                     val gas_used = getTransfer.getString("gas_used")
+                    val decimals = getTransfer.getString("decimals")
 
                     // Select data json type
                     jsonData.put("network", network)
@@ -658,6 +666,7 @@ suspend fun getTokenHistoryAsync(
                     jsonData.put("to", to)
                     jsonData.put("amount", amount)
                     jsonData.put("gas_used", gas_used)
+                    jsonData.put("decimals", decimals)
 
                     transferArray.put(jsonData)
                 }
@@ -791,3 +800,4 @@ suspend fun getTokenListAsync(
     dbConnector.disconnect()
     resultData
 }
+
