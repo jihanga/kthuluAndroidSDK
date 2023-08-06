@@ -630,9 +630,9 @@ suspend fun getTokenHistoryAsync(
         " `to`," +
         " amount," +
         " gas_used " +
-        " (SELECT decimals FROM token_table WHERE t.network ='$network' AND t.t.token_address ='$token_address' LIMIT 1) AS decimals " +
+        " (SELECT decimals FROM token_table WHERE network ='$network' AND token_address ='$token_address' LIMIT 1) AS decimals " +
         "FROM " +
-        " token_transfer_table t" +
+        " token_transfer_table " +
         "WHERE " +
         " network = '$network' AND token_address = '$token_address' AND (`from` ='$owner_account' OR `to` ='$owner_account')"
 
