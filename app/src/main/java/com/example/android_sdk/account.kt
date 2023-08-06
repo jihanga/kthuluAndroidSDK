@@ -181,7 +181,7 @@ suspend fun account() = runBlocking<Unit> {
 //         */
 //
         // Get token history asynchronously
-        val getTokenTransferHistory = async { getTokenHistoryAsync("polygon", "0xeC4eC414c1f6a0759e5d184E17dB45cCd87E09FD", "0x96856126a6bb4870cdd3e179004cd18cef569044") }.await()
+        val getTokenTransferHistory = async { getTokenHistoryAsync("polygon", "0xeC4eC414c1f6a0759e5d184E17dB45cCd87E09FD", "0x0000000000000000000000000000000000000000") }.await()
         println(
             """
             getTokenTransferHistory:
@@ -289,13 +289,13 @@ suspend fun account() = runBlocking<Unit> {
 //        ]
 //         */
 
-        var getTokenList = getTokenListAsync("polygon", "0xec4ec414c1f6a0759e5d184e17db45ccd87e09fd")
-        println(
-            """
-            Get TokenList:
-            ${getTokenList}
-            """.trimIndent()
-        )
+//        var getTokenList = getTokenListAsync("polygon", "0xec4ec414c1f6a0759e5d184e17db45ccd87e09fd")
+//        println(
+//            """
+//            Get TokenList:
+//            ${getTokenList}
+//            """.trimIndent()
+//        )
     }
 }
 
@@ -606,13 +606,11 @@ suspend fun getTokenHistoryAsync(
     network: String,
     owner_account: String,
     token_address: String = "0x0000000000000000000000000000000000000000"
-) : JSONArray = withContext(Dispatchers.IO) {
+) : JSONObject = withContext(Dispatchers.IO) {
 
     val dbConnector = DBConnector()
     dbConnector.connect()
     val connection = dbConnector.getConnection()
-    val jsonData = JSONObject()
-    val transferArray = JSONArray()
 
     val resultArray = JSONArray()
     var resultData = JSONObject()
@@ -637,24 +635,25 @@ suspend fun getTokenHistoryAsync(
         " network = '$network' AND token_address = '$token_address' AND (`from` ='$owner_account' OR `to` ='$owner_account')"
 
     if (connection != null) {
+        println("query : $query")
         val dbQueryExector = DBQueryExector(connection)
-        val getTransfer: ResultSet? = dbQueryExector.executeQuery(query)
+        val getResult: ResultSet? = dbQueryExector.executeQuery(query)
 
-        if (getTransfer != null) {
+        if (getResult != null) {
             try {
-                while (getTransfer.next()) {
-
-                    // Select data = network, token_address, block_number, timestamp, transaction_hash, from, to, amount, gas_used
-                    val network = getTransfer.getString("network")
-                    val token_address = getTransfer.getString("token_address")
-                    val block_number = getTransfer.getString("block_number")
-                    val timestamp = getTransfer.getString("timestamp")
-                    val transaction_hash = getTransfer.getString("transaction_hash")
-                    val from = getTransfer.getString("from")
-                    val to = getTransfer.getString("to")
-                    val amount = getTransfer.getString("amount")
-                    val gas_used = getTransfer.getString("gas_used")
-                    val decimals = getTransfer.getString("decimals")
+                while (getResult.next()) {
+                    val jsonData = JSONObject()
+                    // Select data = network, token_address, block_number, timestamp, transaction_hash, from, to, amount, gas_used, decimals
+                    val network = getResult.getString("network")
+                    val token_address = getResult.getString("token_address")
+                    val block_number = getResult.getString("block_number")
+                    val timestamp = getResult.getString("timestamp")
+                    val transaction_hash = getResult.getString("transaction_hash")
+                    val from = getResult.getString("from")
+                    val to = getResult.getString("to")
+                    val amount = getResult.getString("amount")
+                    val gas_used = getResult.getString("gas_used")
+                    val decimals = getResult.getString("decimals")
 
                     // Select data json type
                     jsonData.put("network", network)
@@ -668,20 +667,20 @@ suspend fun getTokenHistoryAsync(
                     jsonData.put("gas_used", gas_used)
                     jsonData.put("decimals", decimals)
 
-                    transferArray.put(jsonData)
+                    resultArray.put(jsonData)
                 }
 
-                resultData.put("result", "FAIL")
+                resultData.put("result", "OK")
                 resultData.put("value", resultArray)
             } catch (ex: SQLException) {
                 ex.printStackTrace()
             } finally {
-                getTransfer.close() //
+                getResult.close() //
             }
         }
     }
     dbConnector.disconnect()
-    transferArray
+    resultData
 }
 
 suspend fun getUsersAsync(
