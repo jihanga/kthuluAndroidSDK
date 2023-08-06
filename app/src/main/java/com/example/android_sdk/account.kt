@@ -180,14 +180,14 @@ suspend fun account() = runBlocking<Unit> {
 //        }
 //         */
 //
-//        // Get token history asynchronously
-//        val getTokenTransferHistory = async { getTokenHistoryAsync(networkString, account, token_address) }.await()
-//        println(
-//            """
-//            getTokenTransferHistory:
-//            ${getTokenTransferHistory}
-//            """.trimIndent()
-//        )
+        // Get token history asynchronously
+        val getTokenTransferHistory = async { getTokenHistoryAsync("polygon", "0xeC4eC414c1f6a0759e5d184E17dB45cCd87E09FD", "0x96856126a6bb4870cdd3e179004cd18cef569044") }.await()
+        println(
+            """
+            getTokenTransferHistory:
+            ${getTokenTransferHistory}
+            """.trimIndent()
+        )
 //        /**
 //         * getTokenHistoryAsync
 //        [
@@ -520,7 +520,7 @@ suspend fun getBalanceAsync(
     resultData.put("value", resultArray)
 
     val getBalance =
-        "SELECT balance, (SELECT decimals FROM token_table WHERE t.token_address ='$token_address' LIMIT 1) AS decimals FROM token_owner_table t WHERE network = '$network' AND owner_account = '$owner_account' AND token_address = '$token_address'"
+        "SELECT balance, (SELECT decimals FROM token_table WHERE t.network ='$network' AND t.t.token_address ='$token_address' LIMIT 1) FROM token_owner_table t WHERE network = '$network' AND owner_account = '$owner_account' AND token_address = '$token_address'"
     if (connection != null) {
         val dbQueryExector = DBQueryExector(connection)
         val dbData: ResultSet? = dbQueryExector.executeQuery(getBalance)
@@ -620,7 +620,21 @@ suspend fun getTokenHistoryAsync(
     resultData.put("value", resultArray)
 
     val query =
-        "SELECT network, token_address, block_number, timestamp, transaction_hash, `from`, `to`, amount, gas_used FROM token_transfer_table WHERE network = '$network' AND token_address = '$token_address' AND (`from` ='$owner_account' OR `to` ='$owner_account')"
+        "SELECT " +
+                "network," +
+                " token_address," +
+                " block_number," +
+                " timestamp," +
+                " transaction_hash," +
+                " `from`," +
+                " `to`," +
+                " amount," +
+                " gas_used " +
+                " (SELECT decimals FROM token_table WHERE t.network ='$network' AND t.t.token_address ='$token_address' LIMIT 1)"
+                "FROM " +
+                "token_transfer_table t" +
+                "WHERE " +
+                "network = '$network' AND token_address = '$token_address' AND (`from` ='$owner_account' OR `to` ='$owner_account')"
 
     if (connection != null) {
         val dbQueryExector = DBQueryExector(connection)
