@@ -77,36 +77,36 @@ suspend fun getMintableAddress(
 
     val CAQuery=
         "SELECT " +
-                "network, " +
-                "collection_id, " +
-                "collection_name, " +
-                "collection_symbol, " +
-                "nft_type, " +
-                "creator, " +
-                "owner, " +
-                "total_supply, " +
-                "deployment_date, " +
-                "slug, " +
-                "category, "+
-                "logo_url, "+
-                "image_s3_url, "+
-                "isverified, "+
-                "numOwners, "+
-                "currency, "+
-                "discord_link, "+
-                "twitter_link, "+
-                "instagram_link, "+
-                "facebook_link, "+
-                "telegram_link, "+
-                "external_url "+
-                "FROM " +
-                "nft_collection_table " +
-                "WHERE " +
-                "network IN ('ethereum','cypress','polygon','bnb') " +
-                "AND " +
-                "creator IN ('0x780A19638D126d59f4Ed048Ae1e0DC77DAf39a77','0x63425392c42be2638fa858865af6f14f70a71594')"
-    "AND " +
-            " owner IN (${own})"
+            "network, " +
+            "collection_id, " +
+            "collection_name, " +
+            "collection_symbol, " +
+            "nft_type, " +
+            "creator, " +
+            "owner, " +
+            "total_supply, " +
+            "deployment_date, " +
+            "slug, " +
+            "category, "+
+            "logo_url, "+
+            "image_s3_url, "+
+            "isverified, "+
+            "numOwners, "+
+            "currency, "+
+            "discord_link, "+
+            "twitter_link, "+
+            "instagram_link, "+
+            "facebook_link, "+
+            "telegram_link, "+
+            "external_url "+
+        "FROM " +
+            "nft_collection_table " +
+        "WHERE " +
+            "network IN ('ethereum','cypress','polygon','bnb') " +
+            "AND " +
+                "creator IN ('0x780A19638D126d59f4Ed048Ae1e0DC77DAf39a77','0x7E055Cb85FBE64da619865Df8a392d12f009aD81')" +
+            "AND " +
+                " owner IN (${own})"
     try {
         if (connection != null) {
             val dbQueryExector = DBQueryExector(connection)
