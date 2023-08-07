@@ -634,7 +634,7 @@ suspend fun getTokenHistoryAsync(
                     put("from", it.getString("from"))
                     put("to", it.getString("to"))
                     put("amount", it.getString("amount"))
-                    put("gas_used", it.getString("name"))
+                    put("gas_used", it.getString("gas_used"))
                     put("symbol", it.getString("symbol"))
                     put("decimals", it.getString("decimals"))
 
