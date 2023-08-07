@@ -63,6 +63,127 @@ import java.sql.Statement
 //    var value: String?,
 //    var trait_type: String?
 //)
+suspend fun getMintableAddress(
+    owner: Array<String>
+): JSONObject = withContext(Dispatchers.IO) {
+
+    val dbConnector = DBConnector()
+    dbConnector.connect()
+    val connection = dbConnector.getConnection()
+    val CAArray = JSONArray()
+    val CAData = JSONObject()
+
+    val own = owner?.joinToString("','", "'", "'")
+
+    val CAQuery=
+        "SELECT " +
+                "network, " +
+                "collection_id, " +
+                "collection_name, " +
+                "collection_symbol, " +
+                "nft_type, " +
+                "creator, " +
+                "owner, " +
+                "total_supply, " +
+                "deployment_date, " +
+                "slug, " +
+                "category, "+
+                "logo_url, "+
+                "image_s3_url, "+
+                "isverified, "+
+                "numOwners, "+
+                "currency, "+
+                "discord_link, "+
+                "twitter_link, "+
+                "instagram_link, "+
+                "facebook_link, "+
+                "telegram_link, "+
+                "external_url "+
+                "FROM " +
+                "nft_collection_table " +
+                "WHERE " +
+                "network IN ('ethereum','cypress','polygon','bnb') " +
+                "AND " +
+                "creator IN ('0x780A19638D126d59f4Ed048Ae1e0DC77DAf39a77','0x63425392c42be2638fa858865af6f14f70a71594')"
+    "AND " +
+            " owner IN (${own})"
+    try {
+        if (connection != null) {
+            val dbQueryExector = DBQueryExector(connection)
+            val getCA: ResultSet? = dbQueryExector.executeQuery(CAQuery)
+
+            if (getCA != null) {
+                try {
+                    while (getCA.next()) {
+                        val objRes = JSONObject()
+
+                        val network = getCA.getString("network")
+                        val collection_id = getCA.getString("collection_id")
+                        val collection_name = getCA.getString("collection_name")
+                        val collection_symbol = getCA.getString("collection_symbol")
+                        val nft_type = getCA.getString("nft_type")
+                        val creator = getCA.getString("creator")
+                        val owner = getCA.getString("owner")
+                        val total_supply = getCA.getString("total_supply")
+                        val deployment_date = getCA.getString("deployment_date")
+                        val slug = getCA.getString("slug")
+                        val category = getCA.getString("category")
+                        val logo_url = getCA.getString("logo_url")
+                        val image_s3_url = getCA.getString("image_s3_url")
+                        val isverified = getCA.getString("isverified")
+                        val numOwners = getCA.getString("numOwners")
+                        val currency = getCA.getString("currency")
+                        val discord_link = getCA.getString("discord_link")
+                        val twitter_link = getCA.getString("twitter_link")
+                        val instagram_link = getCA.getString("instagram_link")
+                        val facebook_link = getCA.getString("facebook_link")
+                        val telegram_link = getCA.getString("telegram_link")
+                        val external_url = getCA.getString("external_url")
+
+                        objRes.put("network", network)
+                        objRes.put("collection_id", collection_id)
+                        objRes.put("collection_name", collection_name)
+                        objRes.put("collection_symbol", collection_symbol)
+                        objRes.put("nft_type", nft_type)
+                        objRes.put("creator", creator)
+                        objRes.put("owner", owner)
+                        objRes.put("total_supply", total_supply)
+                        objRes.put("deployment_date", deployment_date)
+                        objRes.put("slug", slug)
+                        objRes.put("category", category)
+                        objRes.put("logo_url", logo_url)
+                        objRes.put("image_s3_url", image_s3_url)
+                        objRes.put("isverified", isverified)
+                        objRes.put("numOwners", numOwners)
+                        objRes.put("currency", currency)
+                        objRes.put("discord_link", discord_link)
+                        objRes.put("twitter_link", twitter_link)
+                        objRes.put("instagram_link", instagram_link)
+                        objRes.put("facebook_link", facebook_link)
+                        objRes.put("telegram_link", telegram_link)
+                        objRes.put("external_url", external_url)
+
+                        CAArray.put(objRes)
+                    }
+                }
+                catch (ex: SQLException){
+                    ex.printStackTrace()
+                }
+                finally {
+                    getCA.close()
+                }
+            }
+        }
+        dbConnector.disconnect()
+
+        CAData.put("result", "OK")
+        CAData.put("value", CAArray)
+    }catch (e: Exception){
+        CAData.put("result", "FAIL")
+        CAData.put("reason", e)
+    }
+}
+
 suspend fun setNFTsHide(
     network: String,
     owner: String,

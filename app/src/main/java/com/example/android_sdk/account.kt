@@ -619,21 +619,21 @@ suspend fun getTokenHistoryAsync(
 
     val query =
         "SELECT " +
-        " network," +
-        " token_address," +
-        " block_number," +
-        " timestamp," +
-        " transaction_hash," +
-        " `from`," +
-        " `to`," +
-        " amount," +
-        " gas_used, " +
-        " (SELECT token_symbol FROM token_table WHERE network ='$network' AND token_address ='$token_address' LIMIT 1) AS symbol, " +
-        " (SELECT decimals FROM token_table WHERE network ='$network' AND token_address ='$token_address' LIMIT 1) AS decimals " +
-        "FROM " +
-        " token_transfer_table " +
-        "WHERE " +
-        " network = '$network' AND token_address = '$token_address' AND (`from` ='$owner_account' OR `to` ='$owner_account')"
+                " network," +
+                " token_address," +
+                " block_number," +
+                " timestamp," +
+                " transaction_hash," +
+                " `from`," +
+                " `to`," +
+                " amount," +
+                " gas_used, " +
+                " (SELECT token_symbol FROM token_table WHERE network ='$network' AND token_address ='$token_address' LIMIT 1) AS symbol, " +
+                " (SELECT decimals FROM token_table WHERE network ='$network' AND token_address ='$token_address' LIMIT 1) AS decimals " +
+                "FROM " +
+                " token_transfer_table " +
+                "WHERE " +
+                " network = '$network' AND token_address = '$token_address' AND (`from` ='$owner_account' OR `to` ='$owner_account')"
 
     if (connection != null) {
         println("query : $query")
@@ -757,22 +757,22 @@ suspend fun getTokenListAsync(
     val offset = limit?.let { lim -> page_number?.minus(1)?.times(lim) } ?: 0
 
     var query =
-    " SELECT" +
-    " idx AS idx," +
-    " network AS network," +
-    " token_address AS token_id," +
-    " owner_account AS owner," +
-    " balance AS balance," +
-    " (SELECT decimals FROM token_table WHERE token_address = t.token_address LIMIT 1) AS decimals," +
-    " (SELECT token_symbol FROM token_table WHERE token_address = t.token_address LIMIT 1) AS symbol," +
-    " (SELECT token_name FROM token_table WHERE token_address = t.token_address LIMIT 1) AS name," +
-    " (SELECT COUNT(*) FROM token_owner_table WHERE network = '$network' AND owner_account = '$ownerAddress') AS sum " +
-    " FROM" +
-    " token_owner_table t" +
-    " WHERE" +
-    " network = '$network' AND owner_account = '$ownerAddress'" +
-    " ORDER BY" +
-            " idx $sort";
+        " SELECT" +
+                " idx AS idx," +
+                " network AS network," +
+                " token_address AS token_id," +
+                " owner_account AS owner," +
+                " balance AS balance," +
+                " (SELECT decimals FROM token_table WHERE token_address = t.token_address LIMIT 1) AS decimals," +
+                " (SELECT token_symbol FROM token_table WHERE token_address = t.token_address LIMIT 1) AS symbol," +
+                " (SELECT token_name FROM token_table WHERE token_address = t.token_address LIMIT 1) AS name," +
+                " (SELECT COUNT(*) FROM token_owner_table WHERE network = '$network' AND owner_account = '$ownerAddress') AS sum " +
+                " FROM" +
+                " token_owner_table t" +
+                " WHERE" +
+                " network = '$network' AND owner_account = '$ownerAddress'" +
+                " ORDER BY" +
+                " idx $sort";
 
     if(offset != 0) {
         query += " LIMIT $limit OFFSET $offset";

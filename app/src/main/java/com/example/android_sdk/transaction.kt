@@ -96,11 +96,16 @@ suspend fun sendTransactionAsync(
     amount: String,
 ): JSONObject = withContext(Dispatchers.IO) {
     networkSettings(network)
-    val getAddressInfo = getAccountInfoAsync(fromAddress.lowercase())
-    val result = getAddressInfo.getJSONArray("value")
-    val value = result.getJSONObject(0)
-    val privateKey = value.getString("private")
-
+    val getAddressInfo = getAccountInfoAsync(fromAddress)
+    val privateKey = runCatching {
+        getAddressInfo.getJSONArray("value")
+            .getJSONObject(0)
+            .getString("private")
+    }.getOrElse {
+        // handle error here
+        println("Error while fetching the private key: ${it.message}")
+        null
+    }
     val jsonData = JSONObject()
     try {
         // Ensure amount is a valid number
@@ -184,10 +189,16 @@ suspend fun sendTokenTransactionAsync(
     networkSettings(network)
     val jsonData = JSONObject()
     try {
-        val getAddressInfo = getAccountInfoAsync(fromAddress.lowercase())
-        val result = getAddressInfo.getJSONArray("value")
-        val value = result.getJSONObject(0)
-        val privateKey = value.getString("private")
+        val getAddressInfo = getAccountInfoAsync(fromAddress)
+        val privateKey = runCatching {
+            getAddressInfo.getJSONArray("value")
+                .getJSONObject(0)
+                .getString("private")
+        }.getOrElse {
+            // handle error here
+            println("Error while fetching the private key: ${it.message}")
+            null
+        }
         val web3 = Web3j.build(HttpService(rpcUrl))
         if (BigDecimal(amount) <= BigDecimal.ZERO) {
             jsonData.put("error", "insufficient funds")
@@ -285,10 +296,16 @@ suspend fun deployErc20Async(
 ): JSONObject = withContext(Dispatchers.IO){
     networkSettings(network)
 
-    val getAddressInfo = getAccountInfoAsync(ownerAddress.lowercase())
-    val result = getAddressInfo.getJSONArray("value")
-    val value = result.getJSONObject(0)
-    val privateKey = value.getString("private")
+    val getAddressInfo = getAccountInfoAsync(ownerAddress)
+    val privateKey = runCatching {
+        getAddressInfo.getJSONArray("value")
+            .getJSONObject(0)
+            .getString("private")
+    }.getOrElse {
+        // handle error here
+        println("Error while fetching the private key: ${it.message}")
+        null
+    }
 
     val jsonData = JSONObject()
 
