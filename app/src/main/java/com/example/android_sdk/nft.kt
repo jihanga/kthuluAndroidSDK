@@ -77,35 +77,35 @@ suspend fun getMintableAddress(
 
     val CAQuery=
         "SELECT " +
-            "network, " +
-            "collection_id, " +
-            "collection_name, " +
-            "collection_symbol, " +
-            "nft_type, " +
-            "creator, " +
-            "owner, " +
-            "total_supply, " +
-            "deployment_date, " +
-            "slug, " +
-            "category, "+
-            "logo_url, "+
-            "image_s3_url, "+
-            "isverified, "+
-            "numOwners, "+
-            "currency, "+
-            "discord_link, "+
-            "twitter_link, "+
-            "instagram_link, "+
-            "facebook_link, "+
-            "telegram_link, "+
-            "external_url "+
-        "FROM " +
-            "nft_collection_table " +
-        "WHERE " +
-            "network IN ('ethereum','cypress','polygon','bnb') " +
-            "AND " +
+                "network, " +
+                "collection_id, " +
+                "collection_name, " +
+                "collection_symbol, " +
+                "nft_type, " +
+                "creator, " +
+                "owner, " +
+                "total_supply, " +
+                "deployment_date, " +
+                "slug, " +
+                "category, "+
+                "logo_url, "+
+                "image_s3_url, "+
+                "isverified, "+
+                "numOwners, "+
+                "currency, "+
+                "discord_link, "+
+                "twitter_link, "+
+                "instagram_link, "+
+                "facebook_link, "+
+                "telegram_link, "+
+                "external_url "+
+                "FROM " +
+                "nft_collection_table " +
+                "WHERE " +
+                "network IN ('ethereum','cypress','polygon','bnb') " +
+                "AND " +
                 "creator IN ('0x780A19638D126d59f4Ed048Ae1e0DC77DAf39a77','0x7E055Cb85FBE64da619865Df8a392d12f009aD81')" +
-            "AND " +
+                "AND " +
                 " owner IN (${own})"
     try {
         if (connection != null) {
@@ -1937,7 +1937,7 @@ suspend fun batchMintErc721Async(
             Credentials.create(privateKey)
 
         val batchTokenId = tokenId.map { Uint256(BigInteger(it)) }
-        val batchTokenURI = tokenURI.map { Uint256(BigInteger(it)) }
+        val batchTokenURI = tokenURI.map { Utf8String(it) }
 
         val function = Function(
             "mintBatch",
@@ -2034,7 +2034,7 @@ suspend fun batchMintErc1155Async(
 
         val batchTokenId = tokenId.map { Uint256(BigInteger(it)) }
         val batchAmount = amount.map { Uint256(BigInteger(it)) }
-        val batchTokenURI = tokenURI.map { Uint256(BigInteger(it)) }
+        val batchTokenURI = tokenURI.map { Utf8String(it) }
 
         val function = Function(
             "mintBatch",
