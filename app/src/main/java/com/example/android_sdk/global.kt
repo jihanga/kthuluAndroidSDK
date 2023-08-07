@@ -46,12 +46,16 @@ fun networkSettings(network: String) {
         "polygon" -> "https://rpc-mainnet.maticvigil.com/v1/96ab7849c9d3f105416383dd284c3f7e6511208c"
         "bnb" -> "https://bsc-dataseed.binance.org"
         "goerli" -> "https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161"
+        "baobab" -> "https://api.baobab.klaytn.net:8651"
         "mumbai" -> "https://polygon-mumbai.infura.io/v3/4458cf4d1689497b9a38b1d6bbf05e78"
-        "bnbTest" -> "https://data-seed-prebsc-1-s1.binance.org:8545"
+        "tbnb" -> "https://data-seed-prebsc-1-s1.binance.org:8545"
         else -> throw IllegalArgumentException("Invalid main network type")
     }
     erc20DeployContractAddress = when (network) {
+        "ethereum" -> ""
+        "cypress" -> ""
         "polygon" -> "0x96856126a6bb4870cDD3e179004CD18cEf569044"
+        "bnb" -> ""
         "goerli" -> "0xc11735Ce3c155E755bC9839A5B5d06dEa0482306"
         "baobab" -> "0x808ee7147d91eae0f658164248402ac380eb5f17"
         "mumbai" -> "0x95f34cD3FE7ca6273f7EaFcA35E65A36aa8894cC"
@@ -59,7 +63,10 @@ fun networkSettings(network: String) {
         else -> throw IllegalArgumentException("Invalid main network type")
     }
     erc721DeployContractAddress = when (network) {
+        "ethereum" -> ""
+        "cypress" -> ""
         "polygon" -> "0x780A19638D126d59f4Ed048Ae1e0DC77DAf39a77"
+        "bnb" -> ""
         "goerli" -> "0x4F6b53a83c71EF127FE6e3f76f666A064116E201"
         "baobab" -> "0x780A19638D126d59f4Ed048Ae1e0DC77DAf39a77"
         "mumbai" -> "0xE00838B7948833cf14935489bAF52F2d8d0c2d23"
@@ -67,7 +74,10 @@ fun networkSettings(network: String) {
         else -> throw IllegalArgumentException("Invalid main network type")
     }
     erc1155DeployContractAddress = when (network) {
+        "ethereum" -> ""
+        "cypress" -> ""
         "polygon" -> "0x7E055Cb85FBE64da619865Df8a392d12f009aD81"
+        "bnb" -> ""
         "goerli" -> "0xFEA394a312369b7772513cF856ce4424C1756F2C"
         "baobab" -> "0x96856126a6bb4870cdd3e179004cd18cef569044"
         "mumbai" -> "0x57040e8b36AD23BB766572cED73A1daC6596d375"
