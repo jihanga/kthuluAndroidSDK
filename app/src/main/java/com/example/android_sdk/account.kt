@@ -515,35 +515,31 @@ suspend fun getBalanceAsync(
 
     // return array & object
     val resultArray = JSONArray()
-    var resultData = JSONObject()
-    resultData.put("result", "FAIL")
-    resultData.put("value", resultArray)
+    val resultData = JSONObject().apply {
+        put("result", "FAIL")
+        put("value", resultArray)
+    }
 
-    val getBalance =
+    val query =
         "SELECT balance, (SELECT decimals FROM token_table WHERE t.network ='$network' AND t.t.token_address ='$token_address' LIMIT 1) FROM token_owner_table t WHERE network = '$network' AND owner_account = '$owner_account' AND token_address = '$token_address'"
-    if (connection != null) {
-        val dbQueryExector = DBQueryExector(connection)
-        val dbData: ResultSet? = dbQueryExector.executeQuery(getBalance)
 
-        if (dbData != null) {
-            try {
-                while (dbData.next()) {
-                    val balance = dbData.getString("balance")
-                    val decimals = dbData.getString("decimals")
-                    // balance / 10 ^ decimals
+    connection?.use {
+        val dbQueryExecutor = DBQueryExector(it)
+        val resultSet = dbQueryExecutor.executeQuery(query)
+        resultSet?.use {
+            while (it.next()) {
+                val jsonData = JSONObject().apply {
+                    var balance = it.getString("balance")
+                    var decimals = it.getString("decimals")
                     var newBalance =
                         BigDecimal(balance.toDouble()).divide(BigDecimal.TEN.pow(decimals.toInt()))
-                    jsonData.put("balance", newBalance)
+                    put("balance", newBalance.toString())
 
                 }
                 resultArray.put(jsonData)
-                resultData.put("result", "OK")
-                resultData.put("value", resultArray)
-            } catch (ex: SQLException) {
-                ex.printStackTrace()
-            } finally {
-                dbData.close() //
             }
+            resultData.put("result", "OK")
+            resultData.put("value", resultArray)
         }
     }
     dbConnector.disconnect()
@@ -557,45 +553,33 @@ suspend fun getTokenInfoAsync(
     val dbConnector = DBConnector()
     dbConnector.connect()
     val connection = dbConnector.getConnection()
-    val jsonData = JSONObject()
 
     val resultArray = JSONArray()
-    var resultData = JSONObject()
-    resultData.put("result", "FAIL")
-    resultData.put("value", resultArray)
+    val resultData = JSONObject().apply {
+        put("result", "FAIL")
+        put("value", resultArray)
+    }
 
     val query =
         "SELECT network, token_address, token_name, token_symbol, decimals, total_supply FROM token_table WHERE network = '$network' AND token_address = '$token_address'"
 
-    if (connection != null) {
-        val dbQueryExector = DBQueryExector(connection)
-        val getToken: ResultSet? = dbQueryExector.executeQuery(query)
-
-        if (getToken != null) {
-            try {
-                while (getToken.next()) {
-                    val network = getToken.getString("network")
-                    val token_address = getToken.getString("token_address")
-                    val token_name = getToken.getString("token_name")
-                    val token_symbol = getToken.getString("token_symbol")
-                    val decimals = getToken.getString("decimals")
-                    val total_supply = getToken.getString("total_supply")
-
-                    jsonData.put("network", network)
-                    jsonData.put("token_address", token_address)
-                    jsonData.put("token_name", token_name)
-                    jsonData.put("token_symbol", token_symbol)
-                    jsonData.put("decimals", decimals)
-                    jsonData.put("total_supply", total_supply)
+    connection?.use {
+        val dbQueryExecutor = DBQueryExector(it)
+        val resultSet = dbQueryExecutor.executeQuery(query)
+        resultSet?.use {
+            while (it.next()) {
+                val jsonData = JSONObject().apply {
+                    put("network", it.getString("network"))
+                    put("token_id", it.getString("token_address"))
+                    put("name", it.getString("token_name"))
+                    put("symbol", it.getString("token_symbol"))
+                    put("decimals", it.getString("decimals"))
+                    put("total_supply", it.getString("total_supply"))
                 }
                 resultArray.put(jsonData)
-                resultData.put("result", "OK")
-                resultData.put("value", resultArray)
-            } catch (ex: SQLException) {
-                ex.printStackTrace()
-            } finally {
-                getToken.close() //
             }
+            resultData.put("result", "OK")
+            resultData.put("value", resultArray)
         }
     }
     dbConnector.disconnect()
@@ -613,75 +597,55 @@ suspend fun getTokenHistoryAsync(
     val connection = dbConnector.getConnection()
 
     val resultArray = JSONArray()
-    var resultData = JSONObject()
-    resultData.put("result", "FAIL")
-    resultData.put("value", resultArray)
+    val resultData = JSONObject().apply {
+        put("result", "FAIL")
+        put("value", resultArray)
+    }
 
     val query =
         "SELECT " +
-                " network," +
-                " token_address," +
-                " block_number," +
-                " timestamp," +
-                " transaction_hash," +
-                " `from`," +
-                " `to`," +
-                " amount," +
-                " gas_used, " +
-                " (SELECT token_symbol FROM token_table WHERE network ='$network' AND token_address ='$token_address' LIMIT 1) AS symbol, " +
-                " (SELECT decimals FROM token_table WHERE network ='$network' AND token_address ='$token_address' LIMIT 1) AS decimals " +
-                "FROM " +
-                " token_transfer_table " +
-                "WHERE " +
-                " network = '$network' AND token_address = '$token_address' AND (`from` ='$owner_account' OR `to` ='$owner_account')"
+        " network," +
+        " token_address," +
+        " block_number," +
+        " timestamp," +
+        " transaction_hash," +
+        " `from`," +
+        " `to`," +
+        " amount," +
+        " gas_used, " +
+        " (SELECT token_symbol FROM token_table WHERE network ='$network' AND token_address ='$token_address' LIMIT 1) AS symbol, " +
+        " (SELECT decimals FROM token_table WHERE network ='$network' AND token_address ='$token_address' LIMIT 1) AS decimals " +
+        "FROM " +
+        " token_transfer_table " +
+        "WHERE " +
+        " network = '$network' AND token_address = '$token_address' AND (`from` ='$owner_account' OR `to` ='$owner_account')"
 
-    if (connection != null) {
-        println("query : $query")
-        val dbQueryExector = DBQueryExector(connection)
-        val getResult: ResultSet? = dbQueryExector.executeQuery(query)
+    connection?.use {
+        val dbQueryExecutor = DBQueryExector(it)
+        val resultSet = dbQueryExecutor.executeQuery(query)
+        resultSet?.use {
+            while (it.next()) {
+                val jsonData = JSONObject().apply {
+                    put("network", it.getString("network"))
+                    put("token_id", it.getString("token_address"))
+                    put("block_number", it.getString("block_number"))
+                    put("timestamp", it.getString("timestamp"))
+                    put("transaction_hash", it.getString("transaction_hash"))
+                    put("from", it.getString("from"))
+                    put("to", it.getString("to"))
+                    put("amount", it.getString("amount"))
+                    put("gas_used", it.getString("name"))
+                    put("symbol", it.getString("symbol"))
+                    put("decimals", it.getString("decimals"))
 
-        if (getResult != null) {
-            try {
-                while (getResult.next()) {
-                    val jsonData = JSONObject()
-                    // Select data = network, token_address, block_number, timestamp, transaction_hash, from, to, amount, gas_used, decimals
-                    val network = getResult.getString("network")
-                    val token_address = getResult.getString("token_address")
-                    val block_number = getResult.getString("block_number")
-                    val timestamp = getResult.getString("timestamp")
-                    val transaction_hash = getResult.getString("transaction_hash")
-                    val from = getResult.getString("from")
-                    val to = getResult.getString("to")
-                    val amount = getResult.getString("amount")
-                    val gas_used = getResult.getString("gas_used")
-                    val symbol = getResult.getString("symbol")
-                    val decimals = getResult.getString("decimals")
-
-                    // Select data json type
-                    jsonData.put("network", network)
-                    jsonData.put("token_address", token_address)
-                    jsonData.put("block_number", block_number)
-                    jsonData.put("timestamp", timestamp)
-                    jsonData.put("transaction_hash", transaction_hash)
-                    jsonData.put("from", from)
-                    jsonData.put("to", to)
-                    jsonData.put("amount", amount)
-                    jsonData.put("gas_used", gas_used)
-                    jsonData.put("symbol", symbol)
-                    jsonData.put("decimals", decimals)
-
-                    resultArray.put(jsonData)
                 }
-
-                resultData.put("result", "OK")
-                resultData.put("value", resultArray)
-            } catch (ex: SQLException) {
-                ex.printStackTrace()
-            } finally {
-                getResult.close() //
+                resultArray.put(jsonData)
             }
+            resultData.put("result", "OK")
+            resultData.put("value", resultArray)
         }
     }
+
     dbConnector.disconnect()
     resultData
 }
@@ -693,47 +657,34 @@ suspend fun getUsersAsync(
     val dbConnector = DBConnector()
     dbConnector.connect()
     val connection = dbConnector.getConnection()
-    val transferArray = JSONArray()
 
     val resultArray = JSONArray()
-    var resultData = JSONObject()
-    resultData.put("result", "FAIL")
-    resultData.put("value", resultArray)
+    val resultData = JSONObject().apply {
+        put("result", "FAIL")
+        put("value", resultArray)
+    }
 
     val query =
         "SELECT * FROM users_table WHERE owner_eigenvalue = '$owner'"
 
-    if (connection != null) {
-        val dbQueryExector = DBQueryExector(connection)
-        val getTransfer: ResultSet? = dbQueryExector.executeQuery(query)
-
-        if (getTransfer != null) {
-            try {
-                while (getTransfer.next()) {
-                    val jsonData = JSONObject()
-                    val owner = getTransfer.getString("owner_eigenvalue")
-                    val network = getTransfer.getString("network")
-                    val account = getTransfer.getString("user_account")
-                    val type = getTransfer.getString("user_type")
-
-                    // Select data json type
-                    jsonData.put("owner", owner)
-                    jsonData.put("network", network)
-                    jsonData.put("user_account", account)
-                    jsonData.put("user_type", type)
-
-                    resultArray.put(jsonData)
+    connection?.use {
+        val dbQueryExecutor = DBQueryExector(it)
+        val resultSet = dbQueryExecutor.executeQuery(query)
+        resultSet?.use {
+            while (it.next()) {
+                val jsonData = JSONObject().apply {
+                    put("owner", it.getString("owner_eigenvalue"))
+                    put("network", it.getString("network"))
+                    put("account", it.getString("user_account"))
+                    put("type", it.getString("user_type"))
                 }
-                resultData.put("result", "OK")
-                resultData.put("value", resultArray)
-
-            } catch (ex: SQLException) {
-                ex.printStackTrace()
-            } finally {
-                getTransfer.close() //
+                resultArray.put(jsonData)
             }
+            resultData.put("result", "OK")
+            resultData.put("value", resultArray)
         }
     }
+
     dbConnector.disconnect()
     resultData
 }
@@ -757,22 +708,22 @@ suspend fun getTokenListAsync(
     val offset = limit?.let { lim -> page_number?.minus(1)?.times(lim) } ?: 0
 
     var query =
-        " SELECT" +
-                " idx AS idx," +
-                " network AS network," +
-                " token_address AS token_id," +
-                " owner_account AS owner," +
-                " balance AS balance," +
-                " (SELECT decimals FROM token_table WHERE token_address = t.token_address LIMIT 1) AS decimals," +
-                " (SELECT token_symbol FROM token_table WHERE token_address = t.token_address LIMIT 1) AS symbol," +
-                " (SELECT token_name FROM token_table WHERE token_address = t.token_address LIMIT 1) AS name," +
-                " (SELECT COUNT(*) FROM token_owner_table WHERE network = '$network' AND owner_account = '$ownerAddress') AS sum " +
-                " FROM" +
-                " token_owner_table t" +
-                " WHERE" +
-                " network = '$network' AND owner_account = '$ownerAddress'" +
-                " ORDER BY" +
-                " idx $sort";
+    " SELECT" +
+    " idx AS idx," +
+    " network AS network," +
+    " token_address AS token_id," +
+    " owner_account AS owner," +
+    " balance AS balance," +
+    " (SELECT decimals FROM token_table WHERE token_address = t.token_address LIMIT 1) AS decimals," +
+    " (SELECT token_symbol FROM token_table WHERE token_address = t.token_address LIMIT 1) AS symbol," +
+    " (SELECT token_name FROM token_table WHERE token_address = t.token_address LIMIT 1) AS name," +
+    " (SELECT COUNT(*) FROM token_owner_table WHERE network = '$network' AND owner_account = '$ownerAddress') AS sum " +
+    " FROM" +
+    " token_owner_table t" +
+    " WHERE" +
+    " network = '$network' AND owner_account = '$ownerAddress'" +
+    " ORDER BY" +
+            " idx $sort";
 
     if(offset != 0) {
         query += " LIMIT $limit OFFSET $offset";
