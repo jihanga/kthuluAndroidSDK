@@ -107,6 +107,7 @@ suspend fun getMintableAddress(
                 "creator IN ('0x780A19638D126d59f4Ed048Ae1e0DC77DAf39a77','0x7E055Cb85FBE64da619865Df8a392d12f009aD81')" +
                 "AND " +
                 " owner IN (${own})"
+
     try {
         if (connection != null) {
             val dbQueryExector = DBQueryExector(connection)
@@ -1941,7 +1942,7 @@ suspend fun batchMintErc721Async(
 
         val function = Function(
             "mintBatch",
-            listOf(Address(toAddress), DynamicArray(batchTokenId), DynamicArray(batchTokenURI), DynamicBytes(byteArrayOf(0))),
+            listOf(Address(toAddress), DynamicArray(batchTokenId), DynamicArray(batchTokenURI)),
             emptyList()
         )
         val encodedFunction = FunctionEncoder.encode(function)

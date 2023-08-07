@@ -484,11 +484,11 @@ suspend fun getEstimateGas(
         "batchMintERC721" ->
             if (fromAddress != null && toAddress != null && batchTokenURI != null && batchTokenId != null && tokenAddress != null) {
                 val a = batchTokenId.map { Uint256(BigInteger(it)) }
-                val b = batchTokenURI.map { Uint256(BigInteger(it)) }
+                val b = batchTokenURI.map { Utf8String(it) }
 
                 val function = Function(
                     "mintBatch",
-                    listOf(Address(toAddress), DynamicArray(a), DynamicArray(b), DynamicBytes(byteArrayOf(0))),
+                    listOf(Address(toAddress), DynamicArray(a), DynamicArray(b)),
                     emptyList()
                 )
                 val encodedFunction = FunctionEncoder.encode(function)
@@ -513,7 +513,7 @@ suspend fun getEstimateGas(
             if (fromAddress != null && toAddress != null && batchTokenURI != null && batchTokenId != null && tokenAddress != null && batchTokenAmount!= null) {
                 val a = batchTokenId.map { Uint256(BigInteger(it)) }
                 val b = batchTokenAmount.map { Uint256(BigInteger(it)) }
-                val c = batchTokenURI.map { Uint256(BigInteger(it)) }
+                val c = batchTokenURI.map { Utf8String(it) }
 
                 val function = Function(
                     "mintBatch",
