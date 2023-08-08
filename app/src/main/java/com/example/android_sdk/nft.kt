@@ -365,7 +365,7 @@ suspend fun getNFTsByWallet(
     if (collection_id != null) {
         strQuery += " AND owner.collection_id = '$collection_id'"
     }
-    strQuery += " AND NOT EXISTS ( SELECT 1 FROM nft_hide_table AS hide JOIN users_table AS users ON users.owner_eigenvalue = hide.owner WHERE hide.network = owner.network AND hide.account = owner.owner_account AND owner.owner_account = users.user_account AND hide.token_id = owner.token_id AND hide.collection_id = owner.collection_id AND hide.owner = users.owner_eigenvalue)"
+    strQuery += " AND NOT EXISTS ( SELECT 1 FROM nft_hide_table AS hide WHERE hide.network = owner.network AND hide.account = owner.owner_account AND hide.token_id = owner.token_id AND hide.collection_id = owner.collection_id)"
     strQuery += " ORDER BY token.block_number"
     if (sort == " asc") {
         strQuery += " asc"
@@ -407,7 +407,7 @@ suspend fun getNFTsByWallet(
     if (collection_id != null) {
         sumQuery += " AND owner.collection_id = '$collection_id' "
     }
-    sumQuery += " AND NOT EXISTS ( SELECT 1 FROM nft_hide_table AS hide JOIN users_table AS users ON users.owner_eigenvalue = hide.owner WHERE hide.network = owner.network AND hide.account = owner.owner_account AND owner.owner_account = users.user_account AND hide.token_id = owner.token_id AND hide.collection_id = owner.collection_id AND hide.owner = users.owner_eigenvalue)"
+    sumQuery += " AND NOT EXISTS ( SELECT 1 FROM nft_hide_table AS hideWHERE hide.network = owner.network AND hide.account = owner.owner_account AND hide.token_id = owner.token_id AND hide.collection_id = owner.collection_id)"
 
     println(sumQuery)
     try{
@@ -633,7 +633,7 @@ suspend fun getNFTsByWalletArray(
     if (collection_id != null) {
         sumQuery += " AND owner.collection_id = '$collection_id' "
     }
-    sumQuery += " AND NOT EXISTS ( SELECT 1 FROM nft_hide_table AS hide JOIN users_table AS users ON users.owner_eigenvalue = hide.owner WHERE hide.network = owner.network AND hide.account = owner.owner_account AND owner.owner_account = users.user_account AND hide.token_id = owner.token_id AND hide.collection_id = owner.collection_id AND hide.owner = users.owner_eigenvalue)"
+    sumQuery += " AND NOT EXISTS ( SELECT 1 FROM nft_hide_table AS hide WHERE hide.network = owner.network AND hide.account = owner.owner_account AND hide.token_id = owner.token_id AND hide.collection_id = owner.collection_id)"
 
     println(sumQuery)
     try{
