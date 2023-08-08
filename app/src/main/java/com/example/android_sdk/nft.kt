@@ -187,7 +187,6 @@ suspend fun getMintableAddress(
 
 suspend fun setNFTsHide(
     network: String,
-    owner: String,
     account: String,
     collection_id: String,
     token_id: String
@@ -200,23 +199,19 @@ suspend fun setNFTsHide(
     try {
         val insertQuery =
             "INSERT INTO " +
-                    "nft_hide_table (network, account, collection_id, token_id, owner, image_url, collection_name, nft_name) " +
+                    "nft_hide_table (network, account, collection_id, token_id, image_url, nft_name) " +
                     "SELECT " +
                     "'${network}', " +
                     "'${account}', " +
                     "'${collection_id}', " +
                     "'${token_id}', " +
-                    "'${owner}', " +
                     "token.image_url AS image_url, " +
-                    "collection.collection_name AS collection_name , " +
                     "token.nft_name AS nft_name " +
                     "FROM " +
                     "nft_token_table AS token " +
-                    "JOIN " +
-                    "nft_collection_table AS collection " +
-                    "ON " +
-                    "token.collection_id = collection.collection_id " +
                     "WHERE " +
+                    "token.network = '${network}' " +
+                    "AND " +
                     "token.collection_id = '${collection_id}' " +
                     "AND " +
                     "token.token_id = '${token_id}'"
@@ -254,7 +249,6 @@ suspend fun setNFTsHide(
 }
 suspend fun deleteNFTsHide(
     network: String,
-    owner: String,
     account: String,
     collection_id: String,
     token_id: String
@@ -275,9 +269,7 @@ suspend fun deleteNFTsHide(
                     "AND " +
                     "collection_id = '$collection_id' " +
                     "AND " +
-                    "token_id = '$token_id' " +
-                    "AND " +
-                    "owner = '$owner'"
+                    "token_id = '$token_id' "
 
         println(deleteQuery)
 
@@ -599,7 +591,7 @@ suspend fun getNFTsByWalletArray(
     if (collection_id != null) {
         strQuery += " AND owner.collection_id = '$collection_id'"
     }
-    strQuery += " AND NOT EXISTS ( SELECT 1 FROM nft_hide_table AS hide JOIN users_table AS users ON users.owner_eigenvalue = hide.owner WHERE hide.network = owner.network AND hide.account = owner.owner_account AND owner.owner_account = users.user_account AND hide.token_id = owner.token_id AND hide.collection_id = owner.collection_id AND hide.owner = users.owner_eigenvalue)"
+    strQuery += " AND NOT EXISTS ( SELECT 1 FROM nft_hide_table AS hide WHERE hide.network = owner.network AND hide.account = owner.owner_account AND hide.token_id = owner.token_id AND hide.collection_id = owner.collection_id)"
     strQuery += " ORDER BY token.block_number"
     if (sort == "asc") {
         strQuery += " asc"

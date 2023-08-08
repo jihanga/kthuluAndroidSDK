@@ -30,8 +30,9 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             getString(R.string.kthulu_database_driver_class_name)
         )
 
-        var network = arrayOf("ethereum", "cypress", "polygon", "bnb")
-//        var accountArray = arrayOf("0xe2Ce91F22ed39520e8b099F3800BD21f5b090b56")
+//        var network = arrayOf("ethereum", "cypress", "polygon", "bnb")
+//        val ownerArray = arrayOf("0x0eae45485F2D14FDEB3dAa1143E5170752D5EAe8", "0xf084a7C7052a053cd6950ce83c934443aAE8813c")
+//        var accountArray = arrayOf("0x0eae45485F2D14FDEB3dAa1143E5170752D5EAe8", "0xf084a7C7052a053cd6950ce83c934443aAE8813c", "0xa2f8cD45cd7EA14bcE6e87f177cf9DF928a089A5")
 //        var account = "0x13418f99467D20A7970a36fe4F2fF6Ec494A3A12"
 //        var collection_id = "0x22d5f9B75c524Fec1D6619787e582644CD4D7422"
 //        var sort = "desc"
@@ -55,10 +56,10 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 //                var getNFTsByWalletArray= getNFTsByWalletArray(
 //                    network = network,
 //                    account = accountArray
-////                    collection_id = collection_id,
-////                    sort = sort,
-////                    limit = limit,
-////                    page_number = page_number
+//                    collection_id = collection_id,
+//                    sort = sort,
+//                    limit = limit,
+//                    page_number = page_number
 //                )
 //                println("getNFTsByWalletArray ===== " + getNFTsByWalletArray)
 //                var getNFTsTransferHistory =
@@ -78,12 +79,14 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 //                    println(gasBydeploy)
 //                  var sendNFT = sendNFT1155BatchTransactionAsync("goerli", "0x772A779d280d19C2bd582B4F3840De703249CA39", "0x54fbF887EdB01983DD373E79a0f37413B4565De3", arrayOf("182","189"), "0x5a644acd663d7e4d07eeabe43df0f985670f8f9a", arrayOf("1","1"))
 //                  println(sendNFT)
-//                var setNFTsHide = setNFTsHide("bnb", "zvjqjxew7c", "0xe2Ce91F22ed39520e8b099F3800BD21f5b090b56", "0xa2e4F38f50c00b2B30Cb1EC295301ce1DE825F06", "1")
+//                var setNFTsHide = setNFTsHide("polygon", "8xrhpmtw0w", "0xCfEEc46f729F6A7274ffC1eD4972276E96Cc7Ae5", "0xC16643b44E427A7C5Caa0C682Ec672F12B592e83", "15558")
 //                println("setNFTsHide === "+ setNFTsHide)
-//                var deleteNFTsHide = deleteNFTsHide("bnb", "zvjqjxew7c", "0xe2Ce91F22ed39520e8b099F3800BD21f5b090b56", "0xa2e4F38f50c00b2B30Cb1EC295301ce1DE825F06", "1")
+//                var deleteNFTsHide = deleteNFTsHide("polygon", "8xrhpmtw0w", "0xCfEEc46f729F6A7274ffC1eD4972276E96Cc7Ae5", "0xC16643b44E427A7C5Caa0C682Ec672F12B592e83", "15558")
 //                println("deleteNFTsHide === "+ deleteNFTsHide)
 //                var getNFTsHide = getNFTsHide(network = network, "8xrhpmtw0w")
 //                println("getNFTsHide === " + getNFTsHide)
+//                var getContract = getContract(owner = ownerArray)
+//                println("getContract === " + getContract)
             }
         }
     }
