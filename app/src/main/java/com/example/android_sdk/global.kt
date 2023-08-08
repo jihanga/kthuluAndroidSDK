@@ -539,7 +539,7 @@ suspend fun getEstimateGas(
                 }
             }
         "burnERC721" ->
-            if (fromAddress != null && toAddress != null && tokenId != null && tokenAddress != null) {
+            if (fromAddress != null && tokenId != null && tokenAddress != null) {
                 val function = Function(
                     "burn",
                     listOf(Uint256(BigInteger(tokenId))),
@@ -564,7 +564,7 @@ suspend fun getEstimateGas(
                 }
             }
         "burnERC1155" ->
-            if (fromAddress != null && toAddress != null && tokenId != null && tokenAddress != null && tokenAmount != null) {
+            if (fromAddress != null && tokenId != null && tokenAddress != null && tokenAmount != null) {
                 val function = Function(
                     "burn",
                     listOf(Address(fromAddress), Uint256(BigInteger(tokenId)), Uint256(BigInteger(tokenAmount))),

@@ -960,7 +960,7 @@ suspend fun getNFTsTransferHistory(
 //숨김테이블 조회
 suspend fun getNFTsHide(
     network: Array<String>,
-    owner: String,
+    account: Array<String>,
     sort: String ?= null,
     limit: Int ?= null,
     page_number: Int ?= null
@@ -985,19 +985,17 @@ suspend fun getNFTsHide(
     var hideQuery =
         "SELECT " +
                 "hide.network AS network, " +
-                "hide.owner AS owner, " +
                 "hide.account AS account, " +
                 "hide.collection_id AS collection_id, " +
                 "hide.token_id AS token_id, " +
                 "hide.image_url AS image_url, " +
-                "hide.collection_name AS collection_name, " +
                 "hide.nft_name AS nft_name " +
                 "FROM " +
                 "nft_hide_table AS hide " +
                 "WHERE " +
                 "hide.network IN (${net}) " +
                 "AND " +
-                "hide.owner = '${owner}'"
+                "hide.account IN (${account}) "
     hideQuery += " ORDER BY idx"
     if (sort == "asc") {
         hideQuery += " asc"
@@ -1017,7 +1015,7 @@ suspend fun getNFTsHide(
                 " WHERE " +
                 "network IN (${net}) " +
                 "AND " +
-                "owner = '${owner}'"
+                "account IN (${account}) "
     println(sumQuery)
     print(hideQuery)
 
@@ -1034,20 +1032,16 @@ suspend fun getNFTsHide(
                         val jsonData = JSONObject()
 
                         val network = getTransaction1.getString("network")
-                        val owner = getTransaction1.getString("owner")
                         val account = getTransaction1.getString("account")
                         val collection_id = getTransaction1.getString("collection_id")
                         val token_id = getTransaction1.getString("token_id")
-                        val collection_name = getTransaction1.getString("collection_name")
                         val image_url = getTransaction1.getString("image_url")
                         val nft_name = getTransaction1.getString("nft_name")
 
                         jsonData.put("network", network)
-                        jsonData.put("owner", owner)
                         jsonData.put("account", account)
                         jsonData.put("collection_id", collection_id)
                         jsonData.put("token_id", token_id)
-                        jsonData.put("collection_name", collection_name)
                         jsonData.put("image", image_url)
                         jsonData.put("name", nft_name)
 
@@ -2099,7 +2093,6 @@ suspend fun batchMintErc1155Async(
 suspend fun burnErc721Async(
     network: String,
     fromAddress: String,
-    toAddress: String,
     tokenId: String,
     nftContractAddress: String
 ): JSONObject = withContext(Dispatchers.IO){
@@ -2143,7 +2136,7 @@ suspend fun burnErc721Async(
                     "burnERC721",
                     nftContractAddress,
                     fromAddress,
-                    toAddress,
+                    null,
                     null,
                     tokenId,
                     null, null, null, null, null, null, null, null, null, null,
@@ -2161,7 +2154,7 @@ suspend fun burnErc721Async(
                     "burnERC721",
                     nftContractAddress,
                     fromAddress,
-                    toAddress,
+                    null,
                     null,
                     tokenId,
                     null, null, null, null, null, null, null, null, null, null,
@@ -2191,7 +2184,6 @@ suspend fun burnErc721Async(
 suspend fun burnErc1155Async(
     network: String,
     fromAddress: String,
-    toAddress: String,
     tokenId: String,
     nftContractAddress: String,
     amount: String
@@ -2236,7 +2228,7 @@ suspend fun burnErc1155Async(
                     "burnERC1155",
                     nftContractAddress,
                     fromAddress,
-                    toAddress,
+                    null,
                     amount,
                     tokenId,
                     null, null, null, null, null, null, null, null, null, null,
@@ -2254,7 +2246,7 @@ suspend fun burnErc1155Async(
                     "burnERC1155",
                     nftContractAddress,
                     fromAddress,
-                    toAddress,
+                    null,
                     amount,
                     tokenId,
                     null, null, null, null, null, null, null, null, null, null,
