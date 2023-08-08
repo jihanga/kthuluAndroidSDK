@@ -972,6 +972,7 @@ suspend fun getNFTsHide(
     val hideArray = JSONArray()
 
     val net = network.joinToString("','", "'", "'")
+    val acc = account.joinToString("','", "'", "'")
 
     var offset = if (page_number != null && limit != null) {
         (page_number - 1) * limit
@@ -995,7 +996,7 @@ suspend fun getNFTsHide(
                 "WHERE " +
                 "hide.network IN (${net}) " +
                 "AND " +
-                "hide.account IN (${account}) "
+                "hide.account IN (${acc}) "
     hideQuery += " ORDER BY idx"
     if (sort == "asc") {
         hideQuery += " asc"
@@ -1015,7 +1016,7 @@ suspend fun getNFTsHide(
                 " WHERE " +
                 "network IN (${net}) " +
                 "AND " +
-                "account IN (${account}) "
+                "account IN (${acc}) "
     println(sumQuery)
     print(hideQuery)
 
