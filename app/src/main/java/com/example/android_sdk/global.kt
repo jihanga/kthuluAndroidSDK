@@ -538,6 +538,56 @@ suspend fun getEstimateGas(
                     result = BigInteger.ZERO
                 }
             }
+        "burnERC721" ->
+            if (fromAddress != null && toAddress != null && tokenId != null && tokenAddress != null) {
+                val function = Function(
+                    "burn",
+                    listOf(Uint256(BigInteger(tokenId))),
+                    emptyList()
+                )
+                val encodedFunction = FunctionEncoder.encode(function)
+
+                try {
+                    result = web3.ethEstimateGas(
+                        Transaction.createFunctionCallTransaction(
+                            fromAddress,
+                            BigInteger.ONE,
+                            gasPrice,
+                            BigInteger.ZERO, // temporary gasLimit
+                            tokenAddress,
+                            encodedFunction // data
+                        )
+                    ).send().amountUsed
+                } catch (ex: Exception) {
+                    // Handle the exception appropriately
+                    result = BigInteger.ZERO
+                }
+            }
+        "burnERC1155" ->
+            if (fromAddress != null && toAddress != null && tokenId != null && tokenAddress != null && tokenAmount != null) {
+                val function = Function(
+                    "burn",
+                    listOf(Address(fromAddress), Uint256(BigInteger(tokenId)), Uint256(BigInteger(tokenAmount))),
+                    emptyList()
+                )
+                val encodedFunction = FunctionEncoder.encode(function)
+
+                try {
+                    result = web3.ethEstimateGas(
+                        Transaction.createFunctionCallTransaction(
+                            fromAddress,
+                            BigInteger.ONE,
+                            gasPrice,
+                            BigInteger.ZERO, // temporary gasLimit
+                            tokenAddress,
+                            encodedFunction // data
+                        )
+                    ).send().amountUsed
+                } catch (ex: Exception) {
+                    // Handle the exception appropriately
+                    result = BigInteger.ZERO
+                }
+            }
     }
     BigDecimal(result).multiply(BigDecimal(1.2)).setScale(0, RoundingMode.DOWN).toBigInteger()
 }

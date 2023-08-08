@@ -2104,6 +2104,191 @@ suspend fun batchMintErc1155Async(
     }
 }
 
+suspend fun burnErc721Async(
+    network: String,
+    fromAddress: String,
+    toAddress: String,
+    tokenId: String,
+    nftContractAddress: String
+): JSONObject = withContext(Dispatchers.IO){
+    networkSettings(network)
+    val jsonData = JSONObject()
+
+    try {
+        val getAddressInfo = getAccountInfoAsync(fromAddress)
+        val privateKey = runCatching {
+            getAddressInfo.getJSONArray("value")
+                .getJSONObject(0)
+                .getString("private")
+        }.getOrElse {
+            // handle error here
+            println("Error while fetching the private key: ${it.message}")
+            null
+        }
+        val web3j = Web3j.build(HttpService(rpcUrl))
+        val credentials =
+            Credentials.create(privateKey)
+
+        val function = Function(
+            "burn",
+            listOf(Uint256(BigInteger(tokenId))),
+            emptyList()
+        )
+        val encodedFunction = FunctionEncoder.encode(function)
+
+        val nonce = web3j.ethGetTransactionCount(fromAddress, DefaultBlockParameterName.PENDING)
+            .sendAsync()
+            .get()
+            .transactionCount
+
+        val chainId = web3j.ethChainId().sendAsync().get().chainId.toLong()
+        val tx = if (network == "bnb" || network == "bnbTest") {
+            RawTransaction.createTransaction(
+                nonce,
+                getEstimateGas(network, "baseFee"), // Add 20% to the gas price
+                getEstimateGas(
+                    network,
+                    "burnERC721",
+                    nftContractAddress,
+                    fromAddress,
+                    toAddress,
+                    null,
+                    tokenId,
+                    null, null, null, null, null, null, null, null, null, null,
+                    null, null
+                ), // Add 20% to the gas limit
+                nftContractAddress,
+                encodedFunction
+            )
+        } else {
+            RawTransaction.createTransaction(
+                chainId,
+                nonce,
+                getEstimateGas(
+                    network,
+                    "burnERC721",
+                    nftContractAddress,
+                    fromAddress,
+                    toAddress,
+                    null,
+                    tokenId,
+                    null, null, null, null, null, null, null, null, null, null,
+                    null, null
+                ), // Add 20% to the gas limit
+                nftContractAddress,
+                BigInteger.ZERO,
+                encodedFunction,
+                //0.1gwei
+                BigInteger("33000000000"),
+                getEstimateGas(network, "baseFee")
+            )
+        }
+
+        val signedMessage = TransactionEncoder.signMessage(tx, credentials)
+        val signedTx = Numeric.toHexString(signedMessage)
+
+        val txHash = web3j.ethSendRawTransaction(signedTx).sendAsync().get().transactionHash
+        jsonData.put("result","OK")
+        jsonData.put("transactionHash",txHash)
+    } catch (e: Exception) {
+        jsonData.put("result", "FAIL")
+        jsonData.put("error", e.message)
+    }
+}
+
+suspend fun burnErc1155Async(
+    network: String,
+    fromAddress: String,
+    toAddress: String,
+    tokenId: String,
+    nftContractAddress: String,
+    amount: String
+): JSONObject = withContext(Dispatchers.IO){
+    networkSettings(network)
+    val jsonData = JSONObject()
+
+    try {
+        val getAddressInfo = getAccountInfoAsync(fromAddress)
+        val privateKey = runCatching {
+            getAddressInfo.getJSONArray("value")
+                .getJSONObject(0)
+                .getString("private")
+        }.getOrElse {
+            // handle error here
+            println("Error while fetching the private key: ${it.message}")
+            null
+        }
+        val web3j = Web3j.build(HttpService(rpcUrl))
+        val credentials =
+            Credentials.create(privateKey)
+
+        val function = Function(
+            "burn",
+            listOf(Address(fromAddress), Uint256(BigInteger(tokenId)), Uint256(BigInteger(amount))),
+            emptyList()
+        )
+        val encodedFunction = FunctionEncoder.encode(function)
+
+        val nonce = web3j.ethGetTransactionCount(fromAddress, DefaultBlockParameterName.PENDING)
+            .sendAsync()
+            .get()
+            .transactionCount
+
+        val chainId = web3j.ethChainId().sendAsync().get().chainId.toLong()
+        val tx = if (network == "bnb" || network == "bnbTest") {
+            RawTransaction.createTransaction(
+                nonce,
+                getEstimateGas(network, "baseFee"), // Add 20% to the gas price
+                getEstimateGas(
+                    network,
+                    "burnERC1155",
+                    nftContractAddress,
+                    fromAddress,
+                    toAddress,
+                    amount,
+                    tokenId,
+                    null, null, null, null, null, null, null, null, null, null,
+                    null, null
+                ), // Add 20% to the gas limit
+                nftContractAddress,
+                encodedFunction
+            )
+        } else {
+            RawTransaction.createTransaction(
+                chainId,
+                nonce,
+                getEstimateGas(
+                    network,
+                    "burnERC1155",
+                    nftContractAddress,
+                    fromAddress,
+                    toAddress,
+                    amount,
+                    tokenId,
+                    null, null, null, null, null, null, null, null, null, null,
+                    null, null
+                ), // Add 20% to the gas limit
+                nftContractAddress,
+                BigInteger.ZERO,
+                encodedFunction,
+                //0.1gwei
+                BigInteger("33000000000"),
+                getEstimateGas(network, "baseFee")
+            )
+        }
+
+        val signedMessage = TransactionEncoder.signMessage(tx, credentials)
+        val signedTx = Numeric.toHexString(signedMessage)
+
+        val txHash = web3j.ethSendRawTransaction(signedTx).sendAsync().get().transactionHash
+        jsonData.put("result","OK")
+        jsonData.put("transactionHash",txHash)
+    } catch (e: Exception) {
+        jsonData.put("result", "FAIL")
+        jsonData.put("error", e.message)
+    }
+}
+
 
 //fun getNftsByWallet(mainNet: List<String>, address: String) {
 //    var res: JSONArray? = null
