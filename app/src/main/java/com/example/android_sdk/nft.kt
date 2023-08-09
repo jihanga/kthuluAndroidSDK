@@ -1163,7 +1163,7 @@ suspend fun sendNFT721TransactionAsync(
                 BigInteger.ZERO,
                 encodedFunction,
                 //1gwei
-                BigInteger("33000000000"),
+                BigInteger("50000000000"),
                 getEstimateGas(network, "baseFee")
             )
         }
@@ -1257,7 +1257,7 @@ suspend fun sendNFT1155TransactionAsync(
                 BigInteger.ZERO,
                 encodedFunction,
                 //1gwei
-                BigInteger("33000000000"),
+                BigInteger("50000000000"),
                 getEstimateGas(network, "baseFee")
             )
         }
@@ -1360,7 +1360,7 @@ suspend fun sendNFT721BatchTransactionAsync(
                 BigInteger.ZERO,
                 encodedFunction,
                 //1gwei
-                BigInteger("33000000000"),
+                BigInteger("50000000000"),
                 getEstimateGas(network, "baseFee")
             )
         }
@@ -1477,7 +1477,7 @@ suspend fun sendNFT1155BatchTransactionAsync(
                 BigInteger.ZERO,
                 encodedFunction,
                 //1gwei
-                BigInteger("33000000000"),
+                BigInteger("50000000000"),
                 getEstimateGas(network, "baseFee")
             )
         }
@@ -1585,7 +1585,7 @@ suspend fun deployErc721Async(
                 BigInteger.ZERO,
                 encodedFunction,
                 //0.1gwei
-                BigInteger("33000000000"),
+                BigInteger("50000000000"),
                 getEstimateGas(network, "baseFee")
             )
         }
@@ -1693,7 +1693,7 @@ suspend fun deployErc1155Async(
                 BigInteger.ZERO,
                 encodedFunction,
                 //0.1gwei
-                BigInteger("33000000000"),
+                BigInteger("50000000000"),
                 getEstimateGas(network, "baseFee")
             )
         }
@@ -1787,7 +1787,7 @@ suspend fun mintErc721Async(
                 BigInteger.ZERO,
                 encodedFunction,
                 //0.1gwei
-                BigInteger("33000000000"),
+                BigInteger("50000000000"),
                 getEstimateGas(network, "baseFee")
             )
         }
@@ -1881,7 +1881,7 @@ suspend fun mintErc1155Async(
                 BigInteger.ZERO,
                 encodedFunction,
                 //0.1gwei
-                BigInteger("33000000000"),
+                BigInteger("50000000000"),
                 getEstimateGas(network, "baseFee")
             )
         }
@@ -1977,7 +1977,7 @@ suspend fun batchMintErc721Async(
                 BigInteger.ZERO,
                 encodedFunction,
                 //0.1gwei
-                BigInteger("33000000000"),
+                BigInteger("50000000000"),
                 getEstimateGas(network, "baseFee")
             )
         }
@@ -2074,7 +2074,7 @@ suspend fun batchMintErc1155Async(
                 BigInteger.ZERO,
                 encodedFunction,
                 //0.1gwei
-                BigInteger("33000000000"),
+                BigInteger("50000000000"),
                 getEstimateGas(network, "baseFee")
             )
         }
@@ -2165,7 +2165,7 @@ suspend fun burnErc721Async(
                 BigInteger.ZERO,
                 encodedFunction,
                 //0.1gwei
-                BigInteger("33000000000"),
+                BigInteger("50000000000"),
                 getEstimateGas(network, "baseFee")
             )
         }
@@ -2257,7 +2257,7 @@ suspend fun burnErc1155Async(
                 BigInteger.ZERO,
                 encodedFunction,
                 //0.1gwei
-                BigInteger("33000000000"),
+                BigInteger("50000000000"),
                 getEstimateGas(network, "baseFee")
             )
         }
