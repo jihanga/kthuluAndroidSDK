@@ -772,42 +772,46 @@ suspend fun getNFTsTransferHistory(
 
     var transferQuery =
         " SELECT" +
-                " transfer.network AS network," +
-                " sales.buyer_account AS buyer_account," +
-                " transfer.`from` AS from_address," +
-                " transfer.`to` AS to_address," +
-                " transfer.collection_id AS collection_id," +
-                " transfer.block_number AS block_number," +
-                " transfer.`timestamp` AS timestamp," +
-                " transfer.transaction_hash AS transaction_hash," +
-                " transfer.log_id AS log_id," +
-                " transfer.token_id AS token_id," +
-                " transfer.amount AS amount," +
-                " sales.currency AS currency," +
-                " sales.currency_symbol AS currency_symbol," +
-                " sales.decimals AS decimals," +
-                " sales.price AS price," +
-                " sales.market AS market," +
-                " sales.sales_info AS sales_info," +
-                " CASE" +
-                " WHEN" +
+            " transfer.network AS network," +
+            " sales.buyer_account AS buyer_account," +
+            " transfer.`from` AS from_address," +
+            " transfer.`to` AS to_address," +
+            " transfer.collection_id AS collection_id," +
+            " transfer.block_number AS block_number," +
+            " transfer.`timestamp` AS timestamp," +
+            " transfer.transaction_hash AS transaction_hash," +
+            " transfer.log_id AS log_id," +
+            " transfer.token_id AS token_id," +
+            " transfer.amount AS amount," +
+            " sales.currency AS currency," +
+            " sales.currency_symbol AS currency_symbol," +
+            " sales.decimals AS decimals," +
+            " sales.price AS price," +
+            " sales.market AS market," +
+            " sales.sales_info AS sales_info," +
+        " CASE" +
+            " WHEN" +
                 " sales.sales_info IS NOT NULL THEN 'sales'" +
-                " ELSE" +
+            " ELSE" +
                 " 'transfer'" +
-                " END AS" +
-                " transaction_type" +
-                " FROM" +
-                " nft_transfer_table AS transfer" +
-                " LEFT OUTER JOIN" +
-                " nft_sales_table AS sales" +
-                " ON" +
-                " transfer.transaction_hash = sales.transaction_hash" +
-                " LEFT JOIN" +
-                " nft_transaction_type_table AS type" +
-                " ON" +
-                " transfer.transaction_hash = type.transaction_hash" +
-                " WHERE" +
-                " transfer.network = '${network}'"
+        " END AS" +
+            " transaction_type" +
+        " FROM" +
+            " nft_transfer_table AS transfer" +
+        " LEFT OUTER JOIN" +
+            " nft_sales_table AS sales" +
+        " ON" +
+            " transfer.transaction_hash = sales.transaction_hash" +
+            " AND" +
+                " transfer.network = sales.network" +
+        " LEFT JOIN" +
+            " nft_transaction_type_table AS type" +
+        " ON" +
+            " transfer.transaction_hash = type.transaction_hash" +
+            " AND" +
+                " transfer.network = type.network" +
+        " WHERE" +
+            " transfer.network = '${network}'"
     if(token_id != null){
         transferQuery += " AND transfer.token_id = '${token_id}' "
     }
@@ -836,19 +840,23 @@ suspend fun getNFTsTransferHistory(
 
     var sumQuery =
         "SELECT" +
-                " count(*) AS sum" +
-                " FROM " +
-                " nft_transfer_table AS transfer" +
-                " LEFT JOIN " +
-                " nft_sales_table AS sales" +
-                " ON " +
-                " transfer.transaction_hash = sales.transaction_hash" +
-                " LEFT JOIN " +
-                " nft_transaction_type_table AS type" +
-                " ON " +
-                " transfer.transaction_hash = type.transaction_hash" +
-                " WHERE " +
-                " transfer.network = '$network'"
+            " count(*) AS sum" +
+        " FROM " +
+            " nft_transfer_table AS transfer" +
+        " LEFT JOIN " +
+            " nft_sales_table AS sales" +
+        " ON " +
+            " transfer.transaction_hash = sales.transaction_hash" +
+            " AND" +
+                " transfer.network = sales.network" +
+        " LEFT JOIN " +
+            " nft_transaction_type_table AS type" +
+        " ON " +
+            " transfer.transaction_hash = type.transaction_hash" +
+            " AND" +
+                " transfer.network = type.network"
+        " WHERE " +
+            " transfer.network = '$network'"
     if (token_id != null) {
         sumQuery += " AND transfer.token_id = '$token_id' "
     }
