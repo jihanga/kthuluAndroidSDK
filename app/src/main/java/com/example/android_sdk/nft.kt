@@ -854,7 +854,7 @@ suspend fun getNFTsTransferHistory(
         " ON " +
             " transfer.transaction_hash = type.transaction_hash" +
             " AND" +
-                " transfer.network = type.network"
+                " transfer.network = type.network" +
         " WHERE " +
             " transfer.network = '$network'"
     if (token_id != null) {
