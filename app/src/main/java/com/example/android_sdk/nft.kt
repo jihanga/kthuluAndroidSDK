@@ -77,35 +77,35 @@ suspend fun getMintableAddress(
 
     val CAQuery=
         "SELECT " +
-                "network, " +
-                "collection_id, " +
-                "collection_name, " +
-                "collection_symbol, " +
-                "nft_type, " +
-                "creator, " +
-                "owner, " +
-                "total_supply, " +
-                "deployment_date, " +
-                "slug, " +
-                "category, "+
-                "logo_url, "+
-                "image_s3_url, "+
-                "isverified, "+
-                "numOwners, "+
-                "currency, "+
-                "discord_link, "+
-                "twitter_link, "+
-                "instagram_link, "+
-                "facebook_link, "+
-                "telegram_link, "+
-                "external_url "+
-                "FROM " +
-                "nft_collection_table " +
-                "WHERE " +
-                "network IN ('ethereum','cypress','polygon','bnb') " +
-                "AND " +
+            "network, " +
+            "collection_id, " +
+            "collection_name, " +
+            "collection_symbol, " +
+            "nft_type, " +
+            "creator, " +
+            "owner, " +
+            "total_supply, " +
+            "deployment_date, " +
+            "slug, " +
+            "category, " +
+            "logo_url, " +
+            "image_s3_url, " +
+            "isverified, " +
+            "numOwners, " +
+            "currency, " +
+            "discord_link, " +
+            "twitter_link, " +
+            "instagram_link, " +
+            "facebook_link, " +
+            "telegram_link, " +
+            "external_url " +
+        "FROM " +
+            "nft_collection_table " +
+        "WHERE " +
+            "network IN ('ethereum','cypress','polygon','bnb') " +
+            "AND " +
                 "creator IN ('0x780A19638D126d59f4Ed048Ae1e0DC77DAf39a77','0x7E055Cb85FBE64da619865Df8a392d12f009aD81')" +
-                "AND " +
+            "AND " +
                 " owner IN (${own})"
 
     try {
@@ -126,13 +126,13 @@ suspend fun getMintableAddress(
                         val creator = getCA.getString("creator")
                         val owner = getCA.getString("owner")
                         val total_supply = getCA.getString("total_supply")
-                        val deployment_date = getCA.getString("deployment_date")
+                        val deployment_date = getCA.getInt("deployment_date")
                         val slug = getCA.getString("slug")
                         val category = getCA.getString("category")
                         val logo_url = getCA.getString("logo_url")
                         val image_s3_url = getCA.getString("image_s3_url")
                         val isverified = getCA.getString("isverified")
-                        val numOwners = getCA.getString("numOwners")
+                        val numOwners = getCA.getInt("numOwners")
                         val currency = getCA.getString("currency")
                         val discord_link = getCA.getString("discord_link")
                         val twitter_link = getCA.getString("twitter_link")
@@ -199,21 +199,21 @@ suspend fun setNFTsHide(
     try {
         val insertQuery =
             "INSERT INTO " +
-                    "nft_hide_table (network, account, collection_id, token_id, image_url, nft_name) " +
-                    "SELECT " +
-                    "'${network}', " +
-                    "'${account}', " +
-                    "'${collection_id}', " +
-                    "'${token_id}', " +
-                    "token.image_url AS image_url, " +
-                    "token.nft_name AS nft_name " +
-                    "FROM " +
-                    "nft_token_table AS token " +
-                    "WHERE " +
-                    "token.network = '${network}' " +
-                    "AND " +
+                "nft_hide_table (network, account, collection_id, token_id, image_url, nft_name) " +
+                "SELECT " +
+                "'${network}', " +
+                "'${account}', " +
+                "'${collection_id}', " +
+                "'${token_id}', " +
+                "token.image_url AS image_url, " +
+                "token.nft_name AS nft_name " +
+            "FROM " +
+                "nft_token_table AS token " +
+            "WHERE " +
+                "token.network = '${network}' " +
+                "AND " +
                     "token.collection_id = '${collection_id}' " +
-                    "AND " +
+                "AND " +
                     "token.token_id = '${token_id}'"
 
         println(insertQuery)
@@ -261,14 +261,14 @@ suspend fun deleteNFTsHide(
     try {
         val deleteQuery =
             "DELETE FROM " +
-                    "nft_hide_table " +
-                    "WHERE " +
-                    "network = '$network' " +
-                    "AND " +
+                "nft_hide_table " +
+            "WHERE " +
+                "network = '$network' " +
+                "AND " +
                     "account = '$account' " +
-                    "AND " +
+                "AND " +
                     "collection_id = '$collection_id' " +
-                    "AND " +
+                "AND " +
                     "token_id = '$token_id' "
 
         println(deleteQuery)
@@ -319,45 +319,45 @@ suspend fun getNFTsByWallet(
     }
     var strQuery =
         "SELECT" +
-                " owner.network AS network," +
-                " collection.collection_id AS collection_id," +
-                " collection.collection_name AS collection_name," +
-                " collection.collection_symbol AS collection_symbol," +
-                " collection.creator AS creator," +
-                " collection.deployment_date AS deployment_date," +
-                " collection.total_supply AS total_supply," +
-                " token.nft_type AS nft_type," +
-                " token.minted_time AS minted_time," +
-                " token.block_number AS block_number," +
-                " owner.owner_account AS owner_account," +
-                " token.token_id AS token_id," +
-                " owner.balance AS balance," +
-                " token.token_uri AS token_uri," +
-                " token.nft_name AS nft_name," +
-                " token.description AS description," +
-                " token.image_url AS image_url," +
-                " token.external_url AS external_url," +
-                " token.attribute AS attribute," +
-                " token.token_info AS token_info" +
-                " FROM " +
-                "nft_owner_table AS owner" +
-                " JOIN " +
-                "nft_token_table AS token" +
-                " ON" +
-                " owner.collection_id = token.collection_id" +
-                " AND " +
+            " owner.network AS network," +
+            " collection.collection_id AS collection_id," +
+            " collection.collection_name AS collection_name," +
+            " collection.collection_symbol AS collection_symbol," +
+            " collection.creator AS creator," +
+            " collection.deployment_date AS deployment_date," +
+            " collection.total_supply AS total_supply," +
+            " token.nft_type AS nft_type," +
+            " token.minted_time AS minted_time," +
+            " token.block_number AS block_number," +
+            " owner.owner_account AS owner_account," +
+            " token.token_id AS token_id," +
+            " owner.balance AS balance," +
+            " token.token_uri AS token_uri," +
+            " token.nft_name AS nft_name," +
+            " token.description AS description," +
+            " token.image_url AS image_url," +
+            " token.external_url AS external_url," +
+            " token.attribute AS attribute," +
+            " token.token_info AS token_info" +
+        " FROM " +
+            "nft_owner_table AS owner" +
+        " JOIN " +
+            "nft_token_table AS token" +
+        " ON" +
+            " owner.collection_id = token.collection_id" +
+            " AND " +
                 " owner.token_id = token.token_id" +
-                " AND " +
+            " AND " +
                 " owner.network = token.network" +
-                " JOIN " +
-                "nft_collection_table AS collection" +
-                " ON" +
-                " token.collection_id = collection.collection_id" +
-                " AND" +
+        " JOIN " +
+            "nft_collection_table AS collection" +
+        " ON" +
+            " token.collection_id = collection.collection_id" +
+            " AND" +
                 " token.network = collection.network" +
-                " WHERE" +
-                " owner.network IN (${net})" +
-                " AND" +
+        " WHERE" +
+            " owner.network IN (${net})" +
+            " AND" +
                 " owner.balance != '0'"
     if (account != null) {
         strQuery += " AND owner.owner_account = '$account'"
@@ -380,26 +380,26 @@ suspend fun getNFTsByWallet(
 
     var sumQuery =
         "SELECT" +
-                " count(*) AS sum" +
-                " FROM" +
-                " nft_owner_table AS owner" +
-                " JOIN" +
-                " nft_token_table AS token" +
-                " ON" +
-                " owner.collection_id = token.collection_id" +
-                " AND" +
+            " count(*) AS sum" +
+        " FROM" +
+            " nft_owner_table AS owner" +
+        " JOIN" +
+            " nft_token_table AS token" +
+        " ON" +
+            " owner.collection_id = token.collection_id" +
+            " AND" +
                 " owner.token_id = token.token_id" +
-                " AND" +
+            " AND" +
                 " owner.network = token.network" +
-                " JOIN" +
-                " nft_collection_table AS collection" +
-                " ON" +
-                " token.collection_id = collection.collection_id" +
-                " AND" +
+        " JOIN" +
+            " nft_collection_table AS collection" +
+        " ON" +
+            " token.collection_id = collection.collection_id" +
+            " AND" +
                 " token.network = collection.network" +
-                " WHERE" +
-                " owner.network IN ($net)" +
-                " AND" +
+        " WHERE" +
+            " owner.network IN ($net)" +
+            " AND" +
                 " owner.balance != '0'"
     if (account != null) {
         sumQuery += " AND owner.owner_account = '$account' "
@@ -545,46 +545,46 @@ suspend fun getNFTsByWalletArray(
     }
     var strQuery =
         "SELECT" +
-                " owner.network AS network," +
-                " collection.collection_id AS collection_id," +
-                " collection.collection_name AS collection_name," +
-                " collection.collection_symbol AS collection_symbol," +
-                " collection.creator AS creator," +
-                " collection.deployment_date AS deployment_date," +
-                " collection.total_supply AS total_supply," +
-                " token.nft_type AS nft_type," +
-                " token.minted_time AS minted_time," +
-                " token.block_number AS block_number," +
-                " owner.owner_account AS owner_account," +
-                " token.token_id AS token_id," +
-                " owner.balance AS balance," +
-                " token.token_uri AS token_uri," +
-                " token.nft_name AS nft_name," +
-                " token.description AS description," +
-                " token.image_url AS image_url," +
-                " token.external_url AS external_url," +
-                " token.attribute AS attribute," +
-                " token.token_info AS token_info" +
-                " FROM " +
-                "nft_owner_table AS owner" +
-                " JOIN " +
-                "nft_token_table AS token " +
-                "ON " +
-                "owner.collection_id = token.collection_id " +
-                "AND " +
-                "owner.token_id = token.token_id " +
-                "AND " +
-                "owner.network = token.network" +
-                " JOIN " +
-                "nft_collection_table AS collection " +
-                "ON " +
-                "token.collection_id = collection.collection_id " +
-                "AND " +
-                "token.network = collection.network " +
-                "WHERE " +
-                "owner.network IN (${net}) " +
-                "AND " +
-                "owner.balance != '0'"
+            " owner.network AS network," +
+            " collection.collection_id AS collection_id," +
+            " collection.collection_name AS collection_name," +
+            " collection.collection_symbol AS collection_symbol," +
+            " collection.creator AS creator," +
+            " collection.deployment_date AS deployment_date," +
+            " collection.total_supply AS total_supply," +
+            " token.nft_type AS nft_type," +
+            " token.minted_time AS minted_time," +
+            " token.block_number AS block_number," +
+            " owner.owner_account AS owner_account," +
+            " token.token_id AS token_id," +
+            " owner.balance AS balance," +
+            " token.token_uri AS token_uri," +
+            " token.nft_name AS nft_name," +
+            " token.description AS description," +
+            " token.image_url AS image_url," +
+            " token.external_url AS external_url," +
+            " token.attribute AS attribute," +
+            " token.token_info AS token_info" +
+        " FROM" +
+            " nft_owner_table AS owner" +
+        " JOIN" +
+            " nft_token_table AS token" +
+        " ON" +
+            " owner.collection_id = token.collection_id" +
+            " AND" +
+                " owner.token_id = token.token_id" +
+            " AND" +
+                " owner.network = token.network" +
+        " JOIN" +
+            " nft_collection_table AS collection" +
+        " ON" +
+            " token.collection_id = collection.collection_id" +
+            " AND " +
+                " token.network = collection.network" +
+        " WHERE" +
+            " owner.network IN (${net})" +
+            " AND" +
+                " owner.balance != '0'"
     if (account != null) {
         strQuery += " AND owner.owner_account IN ($acc)"
     }
@@ -606,26 +606,26 @@ suspend fun getNFTsByWalletArray(
 
     var sumQuery =
         "SELECT " +
-                " count(*) AS sum" +
-                " FROM" +
-                " nft_owner_table AS owner" +
-                " JOIN" +
-                " nft_token_table AS token" +
-                " ON" +
-                " owner.collection_id = token.collection_id" +
-                " AND" +
+            " count(*) AS sum" +
+        " FROM" +
+            " nft_owner_table AS owner" +
+        " JOIN" +
+            " nft_token_table AS token" +
+        " ON" +
+            " owner.collection_id = token.collection_id" +
+            " AND" +
                 " owner.token_id = token.token_id" +
-                " AND" +
+            " AND" +
                 " owner.network = token.network" +
-                " JOIN" +
-                " nft_collection_table AS collection" +
-                " ON" +
-                " token.collection_id = collection.collection_id" +
-                " AND" +
+        " JOIN" +
+            " nft_collection_table AS collection" +
+        " ON" +
+            " token.collection_id = collection.collection_id" +
+            " AND" +
                 " token.network = collection.network" +
-                " WHERE" +
-                " owner.network IN ($net)" +
-                " AND" +
+        " WHERE" +
+            " owner.network IN ($net)" +
+            " AND" +
                 " owner.balance != '0'"
     if (account != null) {
         sumQuery += " AND owner.owner_account IN ($acc) "
@@ -993,17 +993,17 @@ suspend fun getNFTsHide(
 
     var hideQuery =
         "SELECT " +
-                "hide.network AS network, " +
-                "hide.account AS account, " +
-                "hide.collection_id AS collection_id, " +
-                "hide.token_id AS token_id, " +
-                "hide.image_url AS image_url, " +
-                "hide.nft_name AS nft_name " +
-                "FROM " +
-                "nft_hide_table AS hide " +
-                "WHERE " +
-                "hide.network IN (${net}) " +
-                "AND " +
+            "hide.network AS network, " +
+            "hide.account AS account, " +
+            "hide.collection_id AS collection_id, " +
+            "hide.token_id AS token_id, " +
+            "hide.image_url AS image_url, " +
+            "hide.nft_name AS nft_name " +
+        "FROM " +
+            "nft_hide_table AS hide " +
+        "WHERE " +
+            "hide.network IN (${net}) " +
+            "AND " +
                 "hide.account IN (${acc}) "
     hideQuery += " ORDER BY idx"
     if (sort == "asc") {
@@ -1018,12 +1018,12 @@ suspend fun getNFTsHide(
 
     var sumQuery =
         "SELECT" +
-                " count(*) AS sum" +
-                " FROM " +
-                " nft_hide_table" +
-                " WHERE " +
-                "network IN (${net}) " +
-                "AND " +
+            " count(*) AS sum" +
+        " FROM " +
+            " nft_hide_table" +
+        " WHERE " +
+            "network IN (${net}) " +
+            "AND " +
                 "account IN (${acc}) "
     println(sumQuery)
     print(hideQuery)
