@@ -331,7 +331,9 @@ suspend fun getTokenHistoryAsync(
         " token_transfer_table " +
         "WHERE " +
         " network = '$network' AND token_address = '$token_address' AND (`from` ='$owner_account' OR `to` ='$owner_account')"
-
+        "ORDER BY " +
+        " block_number DESC"
+    
     connection?.use {
         val dbQueryExecutor = DBQueryExector(it)
         val resultSet = dbQueryExecutor.executeQuery(query)
