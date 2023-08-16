@@ -5,6 +5,7 @@ import android.content.Context
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.coroutines.*
+import signMessage
 
 // Application에서 Context를 가져올 수 있도록 구현
 class MyContext : Application() {
@@ -30,7 +31,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         )
 
 //        var network = arrayOf("ethereum", "cypress", "polygon", "bnb")
-//        val ownerArray = arrayOf("0x0eae45485F2D14FDEB3dAa1143E5170752D5EAe8", "0xf084a7C7052a053cd6950ce83c934443aAE8813c")
+        val ownerArray = arrayOf("0x0eae45485F2D14FDEB3dAa1143E5170752D5EAe8", "0xf084a7C7052a053cd6950ce83c934443aAE8813c")
 //        var accountArray = arrayOf("0x0eae45485F2D14FDEB3dAa1143E5170752D5EAe8", "0xf084a7C7052a053cd6950ce83c934443aAE8813c", "0xa2f8cD45cd7EA14bcE6e87f177cf9DF928a089A5")
 //        var account = "0x13418f99467D20A7970a36fe4F2fF6Ec494A3A12"
 //        var collection_id = "0x22d5f9B75c524Fec1D6619787e582644CD4D7422"
@@ -65,11 +66,11 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 //                    getNFTsTransferHistory(
 //                        network = "polygon",
 //                        collection_id = "0xba6666B118f8303F990f3519DF07e160227cCE87",
-//                        token_id = "11",
-//                        type = "transfer",
-//                        sort = "desc",
-//                        limit = 10,
-//                        page_number = 1
+//                        token_id = "7",
+////                        type = "transfer",
+////                        sort = "desc",
+////                        limit = 10,
+////                        page_number = 1
 //                    )
 //                println("getNFTsTransferHistory ==== " + getNFTsTransferHistory)
 //                  var gas = getEstimateGasAsync("ethereum", "baseFee")
@@ -92,6 +93,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 //                println(mint1155)
 //                var sendNFT = sendNFT1155TransactionAsync("polygon", "0xeC4eC414c1f6a0759e5d184E17dB45cCd87E09FD", "0xf084a7C7052a053cd6950ce83c934443aAE8813c", "2020", "0x556D27664D0126ff1126761dA5c6A4c0E061C05B", "1")
 //                  println(sendNFT)
+//                var signme = signMessage()
+//                println(signme);
             }
         }
     }
