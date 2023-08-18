@@ -31,7 +31,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         )
 
 //        var network = arrayOf("ethereum", "cypress", "polygon", "bnb")
-        val ownerArray = arrayOf("0x0eae45485F2D14FDEB3dAa1143E5170752D5EAe8", "0xf084a7C7052a053cd6950ce83c934443aAE8813c")
+//        val ownerArray = arrayOf("0x0eae45485F2D14FDEB3dAa1143E5170752D5EAe8", "0xf084a7C7052a053cd6950ce83c934443aAE8813c")
 //        var accountArray = arrayOf("0x0eae45485F2D14FDEB3dAa1143E5170752D5EAe8", "0xf084a7C7052a053cd6950ce83c934443aAE8813c", "0xa2f8cD45cd7EA14bcE6e87f177cf9DF928a089A5")
 //        var account = "0x13418f99467D20A7970a36fe4F2fF6Ec494A3A12"
 //        var collection_id = "0x22d5f9B75c524Fec1D6619787e582644CD4D7422"
@@ -95,6 +95,9 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 //                  println(sendNFT)
 //                var signme = signMessage()
 //                println(signme);
+//                var a = chkNFTHolder("polygon", "0x867a270c8e18c3173a259340732ea16abff76908", "0x5066C0934632BCc2902D139D7C875CBD295429f8", "94032")
+//                println(a)
+
             }
         }
     }

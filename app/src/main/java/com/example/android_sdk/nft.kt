@@ -16,6 +16,8 @@ import org.json.JSONObject
 import java.sql.ResultSet
 import java.sql.SQLException
 import org.web3j.abi.FunctionEncoder
+import org.web3j.abi.FunctionReturnDecoder
+import org.web3j.abi.TypeReference
 import org.web3j.abi.datatypes.Address
 import org.web3j.abi.datatypes.DynamicArray
 import org.web3j.abi.datatypes.DynamicBytes
@@ -29,6 +31,7 @@ import org.web3j.crypto.RawTransaction
 import org.web3j.crypto.TransactionEncoder
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.core.DefaultBlockParameterName
+import org.web3j.protocol.core.methods.request.Transaction
 import org.web3j.protocol.http.HttpService
 import org.web3j.tx.Transfer
 import org.web3j.utils.Convert
@@ -77,35 +80,35 @@ suspend fun getMintableAddress(
 
     val CAQuery=
         "SELECT " +
-            "network, " +
-            "collection_id, " +
-            "collection_name, " +
-            "collection_symbol, " +
-            "nft_type, " +
-            "creator, " +
-            "owner, " +
-            "total_supply, " +
-            "deployment_date, " +
-            "slug, " +
-            "category, " +
-            "logo_url, " +
-            "image_s3_url, " +
-            "isverified, " +
-            "numOwners, " +
-            "currency, " +
-            "discord_link, " +
-            "twitter_link, " +
-            "instagram_link, " +
-            "facebook_link, " +
-            "telegram_link, " +
-            "external_url " +
-        "FROM " +
-            "nft_collection_table " +
-        "WHERE " +
-            "network IN ('ethereum','cypress','polygon','bnb') " +
-            "AND " +
+                "network, " +
+                "collection_id, " +
+                "collection_name, " +
+                "collection_symbol, " +
+                "nft_type, " +
+                "creator, " +
+                "owner, " +
+                "total_supply, " +
+                "deployment_date, " +
+                "slug, " +
+                "category, "+
+                "logo_url, "+
+                "image_s3_url, "+
+                "isverified, "+
+                "numOwners, "+
+                "currency, "+
+                "discord_link, "+
+                "twitter_link, "+
+                "instagram_link, "+
+                "facebook_link, "+
+                "telegram_link, "+
+                "external_url "+
+                "FROM " +
+                "nft_collection_table " +
+                "WHERE " +
+                "network IN ('ethereum','cypress','polygon','bnb') " +
+                "AND " +
                 "creator IN ('0x780A19638D126d59f4Ed048Ae1e0DC77DAf39a77','0x7E055Cb85FBE64da619865Df8a392d12f009aD81')" +
-            "AND " +
+                "AND " +
                 " owner IN (${own})"
 
     try {
@@ -199,21 +202,21 @@ suspend fun setNFTsHide(
     try {
         val insertQuery =
             "INSERT INTO " +
-                "nft_hide_table (network, account, collection_id, token_id, image_url, nft_name) " +
-                "SELECT " +
-                "'${network}', " +
-                "'${account}', " +
-                "'${collection_id}', " +
-                "'${token_id}', " +
-                "token.image_url AS image_url, " +
-                "token.nft_name AS nft_name " +
-            "FROM " +
-                "nft_token_table AS token " +
-            "WHERE " +
-                "token.network = '${network}' " +
-                "AND " +
+                    "nft_hide_table (network, account, collection_id, token_id, image_url, nft_name) " +
+                    "SELECT " +
+                    "'${network}', " +
+                    "'${account}', " +
+                    "'${collection_id}', " +
+                    "'${token_id}', " +
+                    "token.image_url AS image_url, " +
+                    "token.nft_name AS nft_name " +
+                    "FROM " +
+                    "nft_token_table AS token " +
+                    "WHERE " +
+                    "token.network = '${network}' " +
+                    "AND " +
                     "token.collection_id = '${collection_id}' " +
-                "AND " +
+                    "AND " +
                     "token.token_id = '${token_id}'"
 
         println(insertQuery)
@@ -261,14 +264,14 @@ suspend fun deleteNFTsHide(
     try {
         val deleteQuery =
             "DELETE FROM " +
-                "nft_hide_table " +
-            "WHERE " +
-                "network = '$network' " +
-                "AND " +
+                    "nft_hide_table " +
+                    "WHERE " +
+                    "network = '$network' " +
+                    "AND " +
                     "account = '$account' " +
-                "AND " +
+                    "AND " +
                     "collection_id = '$collection_id' " +
-                "AND " +
+                    "AND " +
                     "token_id = '$token_id' "
 
         println(deleteQuery)
@@ -319,45 +322,45 @@ suspend fun getNFTsByWallet(
     }
     var strQuery =
         "SELECT" +
-            " owner.network AS network," +
-            " collection.collection_id AS collection_id," +
-            " collection.collection_name AS collection_name," +
-            " collection.collection_symbol AS collection_symbol," +
-            " collection.creator AS creator," +
-            " collection.deployment_date AS deployment_date," +
-            " collection.total_supply AS total_supply," +
-            " token.nft_type AS nft_type," +
-            " token.minted_time AS minted_time," +
-            " token.block_number AS block_number," +
-            " owner.owner_account AS owner_account," +
-            " token.token_id AS token_id," +
-            " owner.balance AS balance," +
-            " token.token_uri AS token_uri," +
-            " token.nft_name AS nft_name," +
-            " token.description AS description," +
-            " token.image_url AS image_url," +
-            " token.external_url AS external_url," +
-            " token.attribute AS attribute," +
-            " token.token_info AS token_info" +
-        " FROM " +
-            "nft_owner_table AS owner" +
-        " JOIN " +
-            "nft_token_table AS token" +
-        " ON" +
-            " owner.collection_id = token.collection_id" +
-            " AND " +
+                " owner.network AS network," +
+                " collection.collection_id AS collection_id," +
+                " collection.collection_name AS collection_name," +
+                " collection.collection_symbol AS collection_symbol," +
+                " collection.creator AS creator," +
+                " collection.deployment_date AS deployment_date," +
+                " collection.total_supply AS total_supply," +
+                " token.nft_type AS nft_type," +
+                " token.minted_time AS minted_time," +
+                " token.block_number AS block_number," +
+                " owner.owner_account AS owner_account," +
+                " token.token_id AS token_id," +
+                " owner.balance AS balance," +
+                " token.token_uri AS token_uri," +
+                " token.nft_name AS nft_name," +
+                " token.description AS description," +
+                " token.image_url AS image_url," +
+                " token.external_url AS external_url," +
+                " token.attribute AS attribute," +
+                " token.token_info AS token_info" +
+                " FROM " +
+                "nft_owner_table AS owner" +
+                " JOIN " +
+                "nft_token_table AS token" +
+                " ON" +
+                " owner.collection_id = token.collection_id" +
+                " AND " +
                 " owner.token_id = token.token_id" +
-            " AND " +
+                " AND " +
                 " owner.network = token.network" +
-        " JOIN " +
-            "nft_collection_table AS collection" +
-        " ON" +
-            " token.collection_id = collection.collection_id" +
-            " AND" +
+                " JOIN " +
+                "nft_collection_table AS collection" +
+                " ON" +
+                " token.collection_id = collection.collection_id" +
+                " AND" +
                 " token.network = collection.network" +
-        " WHERE" +
-            " owner.network IN (${net})" +
-            " AND" +
+                " WHERE" +
+                " owner.network IN (${net})" +
+                " AND" +
                 " owner.balance != '0'"
     if (account != null) {
         strQuery += " AND owner.owner_account = '$account'"
@@ -380,26 +383,26 @@ suspend fun getNFTsByWallet(
 
     var sumQuery =
         "SELECT" +
-            " count(*) AS sum" +
-        " FROM" +
-            " nft_owner_table AS owner" +
-        " JOIN" +
-            " nft_token_table AS token" +
-        " ON" +
-            " owner.collection_id = token.collection_id" +
-            " AND" +
+                " count(*) AS sum" +
+                " FROM" +
+                " nft_owner_table AS owner" +
+                " JOIN" +
+                " nft_token_table AS token" +
+                " ON" +
+                " owner.collection_id = token.collection_id" +
+                " AND" +
                 " owner.token_id = token.token_id" +
-            " AND" +
+                " AND" +
                 " owner.network = token.network" +
-        " JOIN" +
-            " nft_collection_table AS collection" +
-        " ON" +
-            " token.collection_id = collection.collection_id" +
-            " AND" +
+                " JOIN" +
+                " nft_collection_table AS collection" +
+                " ON" +
+                " token.collection_id = collection.collection_id" +
+                " AND" +
                 " token.network = collection.network" +
-        " WHERE" +
-            " owner.network IN ($net)" +
-            " AND" +
+                " WHERE" +
+                " owner.network IN ($net)" +
+                " AND" +
                 " owner.balance != '0'"
     if (account != null) {
         sumQuery += " AND owner.owner_account = '$account' "
@@ -545,46 +548,46 @@ suspend fun getNFTsByWalletArray(
     }
     var strQuery =
         "SELECT" +
-            " owner.network AS network," +
-            " collection.collection_id AS collection_id," +
-            " collection.collection_name AS collection_name," +
-            " collection.collection_symbol AS collection_symbol," +
-            " collection.creator AS creator," +
-            " collection.deployment_date AS deployment_date," +
-            " collection.total_supply AS total_supply," +
-            " token.nft_type AS nft_type," +
-            " token.minted_time AS minted_time," +
-            " token.block_number AS block_number," +
-            " owner.owner_account AS owner_account," +
-            " token.token_id AS token_id," +
-            " owner.balance AS balance," +
-            " token.token_uri AS token_uri," +
-            " token.nft_name AS nft_name," +
-            " token.description AS description," +
-            " token.image_url AS image_url," +
-            " token.external_url AS external_url," +
-            " token.attribute AS attribute," +
-            " token.token_info AS token_info" +
-        " FROM" +
-            " nft_owner_table AS owner" +
-        " JOIN" +
-            " nft_token_table AS token" +
-        " ON" +
-            " owner.collection_id = token.collection_id" +
-            " AND" +
-                " owner.token_id = token.token_id" +
-            " AND" +
-                " owner.network = token.network" +
-        " JOIN" +
-            " nft_collection_table AS collection" +
-        " ON" +
-            " token.collection_id = collection.collection_id" +
-            " AND " +
-                " token.network = collection.network" +
-        " WHERE" +
-            " owner.network IN (${net})" +
-            " AND" +
-                " owner.balance != '0'"
+                " owner.network AS network," +
+                " collection.collection_id AS collection_id," +
+                " collection.collection_name AS collection_name," +
+                " collection.collection_symbol AS collection_symbol," +
+                " collection.creator AS creator," +
+                " collection.deployment_date AS deployment_date," +
+                " collection.total_supply AS total_supply," +
+                " token.nft_type AS nft_type," +
+                " token.minted_time AS minted_time," +
+                " token.block_number AS block_number," +
+                " owner.owner_account AS owner_account," +
+                " token.token_id AS token_id," +
+                " owner.balance AS balance," +
+                " token.token_uri AS token_uri," +
+                " token.nft_name AS nft_name," +
+                " token.description AS description," +
+                " token.image_url AS image_url," +
+                " token.external_url AS external_url," +
+                " token.attribute AS attribute," +
+                " token.token_info AS token_info" +
+                " FROM " +
+                "nft_owner_table AS owner" +
+                " JOIN " +
+                "nft_token_table AS token " +
+                "ON " +
+                "owner.collection_id = token.collection_id " +
+                "AND " +
+                "owner.token_id = token.token_id " +
+                "AND " +
+                "owner.network = token.network" +
+                " JOIN " +
+                "nft_collection_table AS collection " +
+                "ON " +
+                "token.collection_id = collection.collection_id " +
+                "AND " +
+                "token.network = collection.network " +
+                "WHERE " +
+                "owner.network IN (${net}) " +
+                "AND " +
+                "owner.balance != '0'"
     if (account != null) {
         strQuery += " AND owner.owner_account IN ($acc)"
     }
@@ -606,26 +609,26 @@ suspend fun getNFTsByWalletArray(
 
     var sumQuery =
         "SELECT " +
-            " count(*) AS sum" +
-        " FROM" +
-            " nft_owner_table AS owner" +
-        " JOIN" +
-            " nft_token_table AS token" +
-        " ON" +
-            " owner.collection_id = token.collection_id" +
-            " AND" +
+                " count(*) AS sum" +
+                " FROM" +
+                " nft_owner_table AS owner" +
+                " JOIN" +
+                " nft_token_table AS token" +
+                " ON" +
+                " owner.collection_id = token.collection_id" +
+                " AND" +
                 " owner.token_id = token.token_id" +
-            " AND" +
+                " AND" +
                 " owner.network = token.network" +
-        " JOIN" +
-            " nft_collection_table AS collection" +
-        " ON" +
-            " token.collection_id = collection.collection_id" +
-            " AND" +
+                " JOIN" +
+                " nft_collection_table AS collection" +
+                " ON" +
+                " token.collection_id = collection.collection_id" +
+                " AND" +
                 " token.network = collection.network" +
-        " WHERE" +
-            " owner.network IN ($net)" +
-            " AND" +
+                " WHERE" +
+                " owner.network IN ($net)" +
+                " AND" +
                 " owner.balance != '0'"
     if (account != null) {
         sumQuery += " AND owner.owner_account IN ($acc) "
@@ -772,46 +775,46 @@ suspend fun getNFTsTransferHistory(
 
     var transferQuery =
         " SELECT" +
-            " transfer.network AS network," +
-            " sales.buyer_account AS buyer_account," +
-            " transfer.`from` AS from_address," +
-            " transfer.`to` AS to_address," +
-            " transfer.collection_id AS collection_id," +
-            " transfer.block_number AS block_number," +
-            " transfer.`timestamp` AS timestamp," +
-            " transfer.transaction_hash AS transaction_hash," +
-            " transfer.log_id AS log_id," +
-            " transfer.token_id AS token_id," +
-            " transfer.amount AS amount," +
-            " sales.currency AS currency," +
-            " sales.currency_symbol AS currency_symbol," +
-            " sales.decimals AS decimals," +
-            " sales.price AS price," +
-            " sales.market AS market," +
-            " sales.sales_info AS sales_info," +
-        " CASE" +
-            " WHEN" +
+                " transfer.network AS network," +
+                " sales.buyer_account AS buyer_account," +
+                " transfer.`from` AS from_address," +
+                " transfer.`to` AS to_address," +
+                " transfer.collection_id AS collection_id," +
+                " transfer.block_number AS block_number," +
+                " transfer.`timestamp` AS timestamp," +
+                " transfer.transaction_hash AS transaction_hash," +
+                " transfer.log_id AS log_id," +
+                " transfer.token_id AS token_id," +
+                " transfer.amount AS amount," +
+                " sales.currency AS currency," +
+                " sales.currency_symbol AS currency_symbol," +
+                " sales.decimals AS decimals," +
+                " sales.price AS price," +
+                " sales.market AS market," +
+                " sales.sales_info AS sales_info," +
+                " CASE" +
+                " WHEN" +
                 " sales.sales_info IS NOT NULL THEN 'sales'" +
-            " ELSE" +
+                " ELSE" +
                 " 'transfer'" +
-        " END AS" +
-            " transaction_type" +
-        " FROM" +
-            " nft_transfer_table AS transfer" +
-        " LEFT OUTER JOIN" +
-            " nft_sales_table AS sales" +
-        " ON" +
-            " transfer.transaction_hash = sales.transaction_hash" +
-            " AND" +
+                " END AS" +
+                " transaction_type" +
+                " FROM" +
+                " nft_transfer_table AS transfer" +
+                " LEFT OUTER JOIN" +
+                " nft_sales_table AS sales" +
+                " ON" +
+                " transfer.transaction_hash = sales.transaction_hash" +
+                " AND" +
                 " transfer.network = sales.network" +
-        " LEFT JOIN" +
-            " nft_transaction_type_table AS type" +
-        " ON" +
-            " transfer.transaction_hash = type.transaction_hash" +
-            " AND" +
+                " LEFT JOIN" +
+                " nft_transaction_type_table AS type" +
+                " ON" +
+                " transfer.transaction_hash = type.transaction_hash" +
+                " AND" +
                 " transfer.network = type.network" +
-        " WHERE" +
-            " transfer.network = '${network}'"
+                " WHERE" +
+                " transfer.network = '${network}'"
     if(token_id != null){
         transferQuery += " AND transfer.token_id = '${token_id}' "
     }
@@ -840,23 +843,23 @@ suspend fun getNFTsTransferHistory(
 
     var sumQuery =
         "SELECT" +
-            " count(*) AS sum" +
-        " FROM " +
-            " nft_transfer_table AS transfer" +
-        " LEFT JOIN " +
-            " nft_sales_table AS sales" +
-        " ON " +
-            " transfer.transaction_hash = sales.transaction_hash" +
-            " AND" +
+                " count(*) AS sum" +
+                " FROM " +
+                " nft_transfer_table AS transfer" +
+                " LEFT JOIN " +
+                " nft_sales_table AS sales" +
+                " ON " +
+                " transfer.transaction_hash = sales.transaction_hash" +
+                " AND" +
                 " transfer.network = sales.network" +
-        " LEFT JOIN " +
-            " nft_transaction_type_table AS type" +
-        " ON " +
-            " transfer.transaction_hash = type.transaction_hash" +
-            " AND" +
+                " LEFT JOIN " +
+                " nft_transaction_type_table AS type" +
+                " ON " +
+                " transfer.transaction_hash = type.transaction_hash" +
+                " AND" +
                 " transfer.network = type.network" +
-        " WHERE " +
-            " transfer.network = '$network'"
+                " WHERE " +
+                " transfer.network = '$network'"
     if (token_id != null) {
         sumQuery += " AND transfer.token_id = '$token_id' "
     }
@@ -993,17 +996,17 @@ suspend fun getNFTsHide(
 
     var hideQuery =
         "SELECT " +
-            "hide.network AS network, " +
-            "hide.account AS account, " +
-            "hide.collection_id AS collection_id, " +
-            "hide.token_id AS token_id, " +
-            "hide.image_url AS image_url, " +
-            "hide.nft_name AS nft_name " +
-        "FROM " +
-            "nft_hide_table AS hide " +
-        "WHERE " +
-            "hide.network IN (${net}) " +
-            "AND " +
+                "hide.network AS network, " +
+                "hide.account AS account, " +
+                "hide.collection_id AS collection_id, " +
+                "hide.token_id AS token_id, " +
+                "hide.image_url AS image_url, " +
+                "hide.nft_name AS nft_name " +
+                "FROM " +
+                "nft_hide_table AS hide " +
+                "WHERE " +
+                "hide.network IN (${net}) " +
+                "AND " +
                 "hide.account IN (${acc}) "
     hideQuery += " ORDER BY idx"
     if (sort == "asc") {
@@ -1018,12 +1021,12 @@ suspend fun getNFTsHide(
 
     var sumQuery =
         "SELECT" +
-            " count(*) AS sum" +
-        " FROM " +
-            " nft_hide_table" +
-        " WHERE " +
-            "network IN (${net}) " +
-            "AND " +
+                " count(*) AS sum" +
+                " FROM " +
+                " nft_hide_table" +
+                " WHERE " +
+                "network IN (${net}) " +
+                "AND " +
                 "account IN (${acc}) "
     println(sumQuery)
     print(hideQuery)
@@ -1171,7 +1174,7 @@ suspend fun sendNFT721TransactionAsync(
                 BigInteger.ZERO,
                 encodedFunction,
                 //1gwei
-                BigInteger("35000000000"),
+                BigInteger("50000000000"),
                 getEstimateGasAsync(network, "baseFee")
             )
         }
@@ -1265,7 +1268,7 @@ suspend fun sendNFT1155TransactionAsync(
                 BigInteger.ZERO,
                 encodedFunction,
                 //1gwei
-                BigInteger("35000000000"),
+                BigInteger("50000000000"),
                 getEstimateGasAsync(network, "baseFee")
             )
         }
@@ -1368,7 +1371,7 @@ suspend fun sendNFT721BatchTransactionAsync(
                 BigInteger.ZERO,
                 encodedFunction,
                 //1gwei
-                BigInteger("35000000000"),
+                BigInteger("50000000000"),
                 getEstimateGasAsync(network, "baseFee")
             )
         }
@@ -1485,7 +1488,7 @@ suspend fun sendNFT1155BatchTransactionAsync(
                 BigInteger.ZERO,
                 encodedFunction,
                 //1gwei
-                BigInteger("35000000000"),
+                BigInteger("50000000000"),
                 getEstimateGasAsync(network, "baseFee")
             )
         }
@@ -1593,7 +1596,7 @@ suspend fun deployErc721Async(
                 BigInteger.ZERO,
                 encodedFunction,
                 //0.1gwei
-                BigInteger("35000000000"),
+                BigInteger("50000000000"),
                 getEstimateGasAsync(network, "baseFee")
             )
         }
@@ -1701,7 +1704,7 @@ suspend fun deployErc1155Async(
                 BigInteger.ZERO,
                 encodedFunction,
                 //0.1gwei
-                BigInteger("35000000000"),
+                BigInteger("50000000000"),
                 getEstimateGasAsync(network, "baseFee")
             )
         }
@@ -1795,7 +1798,7 @@ suspend fun mintErc721Async(
                 BigInteger.ZERO,
                 encodedFunction,
                 //0.1gwei
-                BigInteger("35000000000"),
+                BigInteger("50000000000"),
                 getEstimateGasAsync(network, "baseFee")
             )
         }
@@ -1889,7 +1892,7 @@ suspend fun mintErc1155Async(
                 BigInteger.ZERO,
                 encodedFunction,
                 //0.1gwei
-                BigInteger("35000000000"),
+                BigInteger("50000000000"),
                 getEstimateGasAsync(network, "baseFee")
             )
         }
@@ -1985,7 +1988,7 @@ suspend fun batchMintErc721Async(
                 BigInteger.ZERO,
                 encodedFunction,
                 //0.1gwei
-                BigInteger("35000000000"),
+                BigInteger("50000000000"),
                 getEstimateGasAsync(network, "baseFee")
             )
         }
@@ -2082,7 +2085,7 @@ suspend fun batchMintErc1155Async(
                 BigInteger.ZERO,
                 encodedFunction,
                 //0.1gwei
-                BigInteger("35000000000"),
+                BigInteger("50000000000"),
                 getEstimateGasAsync(network, "baseFee")
             )
         }
@@ -2173,7 +2176,7 @@ suspend fun burnErc721Async(
                 BigInteger.ZERO,
                 encodedFunction,
                 //0.1gwei
-                BigInteger("35000000000"),
+                BigInteger("50000000000"),
                 getEstimateGasAsync(network, "baseFee")
             )
         }
@@ -2265,7 +2268,7 @@ suspend fun burnErc1155Async(
                 BigInteger.ZERO,
                 encodedFunction,
                 //0.1gwei
-                BigInteger("35000000000"),
+                BigInteger("50000000000"),
                 getEstimateGasAsync(network, "baseFee")
             )
         }
@@ -2279,6 +2282,113 @@ suspend fun burnErc1155Async(
     } catch (e: Exception) {
         jsonData.put("result", "FAIL")
         jsonData.put("error", e.message)
+    }
+}
+
+suspend fun chkNFTHolder(
+    network: String,
+    account: String,
+    collection_id: String,
+    token_id: String
+): JSONObject = withContext(Dispatchers.IO){
+    val dbConnector = DBConnector()
+    dbConnector.connect()
+    val connection = dbConnector.getConnection()
+    val result = JSONObject()
+    var query =
+        "SELECT " +
+                "network, " +
+                "collection_id, " +
+                "token_id, " +
+                "nft_type " +
+                "FROM " +
+                "nft_token_table " +
+                "WHERE " +
+                "network = '${network}' " +
+                "AND " +
+                "collection_id = '${collection_id}' " +
+                "AND " +
+                "token_id = '${token_id}' "
+
+    try {
+        var network: String? = null
+        var collection_id: String? = null
+        var token_id: String? = null
+        var nft_type: String? = null
+        if (connection != null) {
+            val dbQueryExector = DBQueryExector(connection)
+            val getTransaction1: ResultSet? = dbQueryExector.executeQuery(query)
+            if (getTransaction1 != null) {
+                try {
+                    while (getTransaction1.next()) {
+                        network = getTransaction1.getString("network")
+                        collection_id = getTransaction1.getString("collection_id")
+                        token_id = getTransaction1.getString("token_id")
+                        nft_type = getTransaction1.getString("nft_type")
+                    }
+                }
+                catch (ex: SQLException) {
+                    ex.printStackTrace()
+                } finally {
+                    getTransaction1.close()
+                }
+            }
+        }
+        dbConnector.disconnect()
+
+        if(nft_type == null) {
+            result.put("result", "FAIL")
+            result.put("error", "DB info is null")
+            return@withContext result
+        }
+
+        networkSettings(network!!)
+        val web3 = Web3j.build(HttpService(rpcUrl))
+        if(nft_type == "erc721") {
+            val ownerFunction = Function(
+                "ownerOf",
+                listOf(Uint256(BigInteger(token_id))),
+                listOf(object : TypeReference<Address>() {})
+            )
+            val encodedOwnerFunction = FunctionEncoder.encode(ownerFunction)
+            val ownerResponse = web3.ethCall(
+                Transaction.createEthCallTransaction(null, collection_id, encodedOwnerFunction),
+                DefaultBlockParameterName.LATEST
+            ).send()
+            val ownerOutput =
+                FunctionReturnDecoder.decode(ownerResponse.result, ownerFunction.outputParameters)
+            val owner = ownerOutput[0].value
+            if (owner == account) {
+                result.put("result", "OK")
+            } else {
+                result.put("result", "FAIL")
+                result.put("error", "NOT OWNER")
+            }
+        } else {
+            val balanceOfFunction = Function(
+                "balanceOf",
+                listOf(Address(account), Uint256(BigInteger(token_id))),
+                listOf(object : TypeReference<Uint256>() {})
+            )
+            val encodedbalanceOfFunction = FunctionEncoder.encode(balanceOfFunction)
+            val balanceOfResponse = web3.ethCall(
+                Transaction.createEthCallTransaction(null, collection_id, encodedbalanceOfFunction),
+                DefaultBlockParameterName.LATEST
+            ).send()
+            val balanceOfOutput =
+                FunctionReturnDecoder.decode(balanceOfResponse.result, balanceOfFunction.outputParameters)
+            val balance = (balanceOfOutput[0].value as BigInteger).toInt()
+            if (balance >= 1) {
+                result.put("result", "OK")
+            } else {
+                result.put("result", "FAIL")
+                result.put("error", "NOT OWNER")
+            }
+        }
+    }
+    catch (e: Exception){
+        result.put("result", "FAIL")
+        result.put("error", e.message)
     }
 }
 
