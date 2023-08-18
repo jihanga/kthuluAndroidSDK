@@ -764,7 +764,8 @@ suspend fun getTokenListAsync(
 suspend fun signMessage(
     fromAddress: String,
     collection_id: String,
-    chainID: String
+    network: String,
+    token_id: String
 ): String {
     val getAddressInfo = getAccountInfoAsync(fromAddress)
     val privateKey = runCatching {
@@ -778,10 +779,10 @@ suspend fun signMessage(
     }
     var message = ""
     val credentials = Credentials.create(privateKey)
-    val str = fromAddress+collection_id+chainID
+    val str = network+fromAddress+collection_id+token_id
     val hash = Hash.sha3(Numeric.toHexStringNoPrefix(str.toByteArray()))
 //    println("Hash$hash")
-    if(chainID == "8217") {
+    if(network == "cypress") {
         message = """
         \x19Klaytn Signed Message:
         ${hash.length}$hash
@@ -804,14 +805,15 @@ suspend fun getSignerAddressFromSignature(
     signature: String,
     fromAddress: String,
     collection_id: String,
-    chainID: String
+    network: String,
+    token_id: String
 ): String {
     var message = ""
-    val str = fromAddress+collection_id+chainID
+    val str = network+fromAddress+collection_id+token_id
     val hash = Hash.sha3(Numeric.toHexStringNoPrefix(str.toByteArray()))
 //    println("Hash$hash")
 
-    if(chainID == "8217") {
+    if(network == "cypress") {
         message = """
         \x19Klaytn Signed Message:
         ${hash.length}$hash
