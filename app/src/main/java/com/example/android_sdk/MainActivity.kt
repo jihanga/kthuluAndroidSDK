@@ -95,8 +95,10 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 //                  println(sendNFT)
 //                var signme = signMessage()
 //                println(signme);
-//                var a = chkNFTHolder("polygon", "0x867a270c8e18c3173a259340732ea16abff76908", "0x5066C0934632BCc2902D139D7C875CBD295429f8", "94032")
+//                var a = chkNFTHolder("polygon", "0x867a270c8e18c3173a259340732ea16abff76908", "0x2bf59f7908B6588F6B9Abd11284719775330bc21", "140078")
 //                println(a)
+//                 var verify = verifyNFT("cypress", "41100060085", "0xa9A95C5feF43830D5d67156a2582A2E793aCb465", "")
+//                println(verify)
 
             }
         }

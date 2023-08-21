@@ -13,17 +13,16 @@ import getAccountInfoAsync
 import kotlinx.coroutines.*
 import org.json.JSONArray
 import org.json.JSONObject
-import java.sql.ResultSet
-import java.sql.SQLException
 import org.web3j.abi.FunctionEncoder
 import org.web3j.abi.FunctionReturnDecoder
 import org.web3j.abi.TypeReference
 import org.web3j.abi.datatypes.Address
+import org.web3j.abi.datatypes.Bool
 import org.web3j.abi.datatypes.DynamicArray
 import org.web3j.abi.datatypes.DynamicBytes
 import org.web3j.abi.datatypes.Function
-import org.web3j.abi.datatypes.Type
 import org.web3j.abi.datatypes.Utf8String
+import org.web3j.abi.datatypes.generated.Bytes4
 import org.web3j.abi.datatypes.generated.Uint256
 import org.web3j.abi.datatypes.generated.Uint8
 import org.web3j.crypto.Credentials
@@ -33,39 +32,17 @@ import org.web3j.protocol.Web3j
 import org.web3j.protocol.core.DefaultBlockParameterName
 import org.web3j.protocol.core.methods.request.Transaction
 import org.web3j.protocol.http.HttpService
-import org.web3j.tx.Transfer
-import org.web3j.utils.Convert
 import org.web3j.utils.Numeric
-import java.math.BigDecimal
+import java.io.IOException
+import java.io.InputStreamReader
 import java.math.BigInteger
+import java.net.HttpURLConnection
+import java.net.URL
+import java.sql.ResultSet
+import java.sql.SQLException
 import java.sql.Statement
+import java.util.Date
 
-//data class Nft(
-//    var network: List<network>?,
-//    var account: String?,
-//    var balance: String?,
-//    var collection_id: String?,
-//    var collection_name: String?,
-//    var collection_symbol: String?,
-//    var nft_type: String?,
-//    var block_number: String?,
-//    var token_id: String?,
-//    var token_name: String?,
-//    var token_info: String?
-////    var tokenURI: String?,
-////    var balance: String?,
-////    var h_timestamp: String?,// holder certification date
-////    var name: String?,
-////    var image: String?,
-////    var description: String?,
-////    var attributes: List<Attributes>?,
-////    var account_address: String?
-//)
-
-//data class Attributes(
-//    var value: String?,
-//    var trait_type: String?
-//)
 suspend fun getMintableAddress(
     owner: Array<String>
 ): JSONObject = withContext(Dispatchers.IO) {
@@ -2285,6 +2262,319 @@ suspend fun burnErc1155Async(
     }
 }
 
+suspend fun verifyNFT(
+    network: String,
+    tokenId: String,
+    contractAddress: String,
+    apiKey: String
+): JSONObject = withContext(Dispatchers.IO) {
+    val dbConnector = DBConnector()
+    dbConnector.connect()
+    val connection = dbConnector.getConnection()
+    val result = JSONObject()
+    result.put("ContractVerify", false)
+    result.put("TokenURIAvailable", false)
+    result.put("TokenURIResponseOnTime", false)
+    result.put("TokenURIDecentralized", false)
+    result.put("MetadataStandard", false)
+    result.put("MetadataImageAvailable", false)
+    result.put("TokenURIisHTTPS", false)
+    result.put("ImageURIisHTTPS", false)
+
+    var nftType: String? = null
+    var tokenURI: String? = null
+    var tokenInfo: String? = null
+    var imageURL: String? = null
+    var query =
+        "SELECT nft_type, token_uri, token_info, image_url FROM " +
+                "nft_token_table " +
+                "WHERE " +
+                "network = '${network}' " +
+                "AND " +
+                "collection_id = '${contractAddress}' " +
+                "AND " +
+                "token_id = '${tokenId}' "
+    try {
+        if (connection != null) {
+            val dbQueryExector = DBQueryExector(connection)
+            val getTransaction1: ResultSet? = dbQueryExector.executeQuery(query)
+            if (getTransaction1 != null) {
+                try {
+                    while (getTransaction1.next()) {
+                        nftType = getTransaction1.getString("nft_type")
+                        tokenURI = getTransaction1.getString("token_uri")
+                        tokenInfo = getTransaction1.getString("token_info")
+                        imageURL = getTransaction1.getString("image_url")
+                    }
+                }
+                catch (ex: SQLException) {
+                    ex.printStackTrace()
+                } finally {
+                    getTransaction1.close()
+                }
+            }
+        }
+        val hostUrl: String
+        when (network) {
+            "ethereum" -> {
+                hostUrl = "https://api.etherscan.com/api?module=contract&action=getabi&address=$contractAddress&apikey=$apiKey"
+            }
+            "cypress" -> {
+                hostUrl = ""
+            }
+            "polygon" -> {
+                hostUrl = "https://api.polygonscan.com/api?module=contract&action=getabi&address=$contractAddress&apikey=$apiKey"
+            }
+            "bnb" -> {
+                hostUrl = "https://api.bscscan.com/api?module=contract&action=getabi&address=$contractAddress&apikey=$apiKey"
+            }
+            else -> {
+                hostUrl = ""
+            }
+        }
+
+        if(network == "cypress") {
+            result.put("ContractVerify", false)
+            result.put("ContractStandard", false)
+        } else {
+            val url = URL(hostUrl)
+            val connection = url.openConnection() as HttpURLConnection
+            connection.requestMethod = "GET"
+
+            val responseCode = connection.responseCode
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                val responseData = InputStreamReader(connection.inputStream).readText()
+
+                val jsonObject = JSONObject(responseData)
+                val apiResult = jsonObject.optString("result")
+
+                if (apiResult == "Contract source code not verified") {
+                    result.put("ContractVerify", false)
+                    result.put("ContractStandard", false)
+                } else {
+                    val apiResultJson = JSONArray(apiResult)
+                    result.put("ContractVerify", true)
+
+                    val bytecodeFunctions = mutableListOf<JSONObject>()
+
+                    for (i in 0 until apiResultJson.length()) {
+                        val jsonObject = apiResultJson.getJSONObject(i)
+                        if (jsonObject.getString("type") == "function") {
+                            bytecodeFunctions.add(jsonObject)
+                        }
+                    }
+
+                    val contractStandard = JSONObject()
+
+                    if (nftType == "erc721") {
+                        val balanceOf =
+                            bytecodeFunctions.any { it.getString("name") == "balanceOf" }
+                        val ownerOf = bytecodeFunctions.any { it.getString("name") == "ownerOf" }
+                        val transferFrom =
+                            bytecodeFunctions.any { it.getString("name") == "transferFrom" }
+                        val approve = bytecodeFunctions.any { it.getString("name") == "approve" }
+                        val setApprovalForAll =
+                            bytecodeFunctions.any { it.getString("name") == "setApprovalForAll" }
+                        val getApproved =
+                            bytecodeFunctions.any { it.getString("name") == "getApproved" }
+                        val isApprovedForAll =
+                            bytecodeFunctions.any { it.getString("name") == "isApprovedForAll" }
+
+                        var safeTransferFromWith_data = false
+                        var safeTransferFromWithout_data = false
+
+                        for (jsonObject in bytecodeFunctions) {
+                            val name = jsonObject.getString("name")
+                            if (name == "safeTransferFrom") {
+                                val inputs = jsonObject.getJSONArray("inputs")
+                                var hasData = false
+                                for (i in 0 until inputs.length()) {
+                                    val input = inputs.getJSONObject(i)
+                                    if (input.getString("name") == "_data") {
+                                        hasData = true
+                                        break
+                                    }
+                                }
+                                if (hasData) {
+                                    safeTransferFromWith_data = true
+                                } else {
+                                    safeTransferFromWithout_data = true
+                                }
+                            }
+                        }
+
+                        contractStandard.put("balanceof", balanceOf)
+                        contractStandard.put("ownerOf", ownerOf)
+                        contractStandard.put("transferFrom", transferFrom)
+                        contractStandard.put("approve", approve)
+                        contractStandard.put("setApprovalForAll", setApprovalForAll)
+                        contractStandard.put("getApproved", getApproved)
+                        contractStandard.put("isApprovedForAll", isApprovedForAll)
+                        contractStandard.put("safeTransferFromWith_data", safeTransferFromWith_data)
+                        contractStandard.put(
+                            "safeTransferFromWithout_data",
+                            safeTransferFromWithout_data
+                        )
+                    } else if (nftType == "erc1155") {
+                        val balanceOf =
+                            bytecodeFunctions.any { it.getString("name") == "balanceOf" }
+                        val balanceOfBatch =
+                            bytecodeFunctions.any { it.getString("name") == "balanceOfBatch" }
+                        val setApprovalForAll =
+                            bytecodeFunctions.any { it.getString("name") == "setApprovalForAll" }
+                        val isApprovedForAll =
+                            bytecodeFunctions.any { it.getString("name") == "isApprovedForAll" }
+                        val safeTransferFrom =
+                            bytecodeFunctions.any { it.getString("name") == "safeTransferFrom" }
+                        val safeBatchTransferFrom =
+                            bytecodeFunctions.any { it.getString("name") == "safeBatchTransferFrom" }
+
+                        contractStandard.put("balanceof", balanceOf)
+                        contractStandard.put("balanceOfBatch", balanceOfBatch)
+                        contractStandard.put("setApprovalForAll", setApprovalForAll)
+                        contractStandard.put("isApprovedForAll", isApprovedForAll)
+                        contractStandard.put("safeTransferFrom", safeTransferFrom)
+                        contractStandard.put("safeBatchTransferFrom", safeBatchTransferFrom)
+                    }
+
+                    result.put("ContractStandard", contractStandard)
+                }
+
+            } else {
+                println("Invalid API response. Response code: $responseCode")
+                result
+            }
+        }
+
+        networkSettings(network!!)
+        val web3 = Web3j.build(HttpService(rpcUrl))
+        var parameter = Numeric.hexStringToByteArray("0x80ac58cd")
+        if(nftType == "erc721") {
+            parameter = Numeric.hexStringToByteArray("0x80ac58cd")
+
+        } else if(nftType == "erc1155"){
+            parameter = Numeric.hexStringToByteArray("0xd9b67a26")
+        }
+        val supportsInterface = Function(
+            "supportsInterface",
+            listOf(Bytes4(parameter)),
+            listOf(object : TypeReference<Bool>() {})
+        )
+        val encodedsupportsInterface = FunctionEncoder.encode(supportsInterface)
+        val supportsInterfaceResponse = web3.ethCall(
+            Transaction.createEthCallTransaction(null, contractAddress, encodedsupportsInterface),
+            DefaultBlockParameterName.LATEST
+        ).send()
+        val supportsInterfaceOutput =
+            FunctionReturnDecoder.decode(supportsInterfaceResponse.result, supportsInterface.outputParameters)
+        val isSupported = supportsInterfaceOutput[0].value as Boolean
+        if (isSupported) {
+            result.put("supportsInterface", true)
+        } else {
+            result.put("supportsInterface", false)
+        }
+
+        if(!tokenURI.isNullOrEmpty()) {
+            var uriHttp = ""
+            if (tokenURI.startsWith("ipfs://ipfs/")) {
+                uriHttp = "https://ipfs.io/ipfs/${tokenURI.substring(12)}"
+            } else if (tokenURI.startsWith("ipfs://")) {
+                uriHttp = "https://ipfs.io/ipfs/${tokenURI.substring(7)}"
+            } else if (tokenURI.startsWith("ar://")) {
+                uriHttp = "https://arweave.net/${tokenURI.substring(5)}"
+            } else {
+                uriHttp = tokenURI
+            }
+
+            if (uriHttp.contains("ipfs") || uriHttp.contains("arweave")) {
+                result.put("TokenURIDecentralized", true)
+            }
+
+            val startTime = Date()
+            val url = URL(uriHttp)
+            val connection = url.openConnection() as HttpURLConnection
+            connection.requestMethod = "GET"
+
+            val responseCode = connection.responseCode
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                val endTime = Date()
+
+                val elapsedTime = (endTime.time - startTime.time) / 1000
+
+                result.put("TokenURIAvailable", true)
+
+                if (elapsedTime < 2) {
+                    result.put("TokenURIResponseOnTime", true)
+                }
+            } else {
+                println("Invalid API response. Response code: $responseCode")
+            }
+
+            if (url.protocol == "https") {
+                result.put("TokenURIisHTTPS", true)
+            }
+        }
+
+        if (tokenInfo != null) {
+            try {
+                val json = JSONObject(tokenInfo)
+
+                var trueCount = 0
+
+                if (json.has("name")) {
+                    trueCount += 1
+                }
+
+                if (json.has("image")) {
+                    trueCount += 1
+
+                    if (imageURL!!.startsWith("ipfs://ipfs/")) {
+                        imageURL = "https://ipfs.io/ipfs/${imageURL.substring(12)}"
+                    } else if (imageURL.startsWith("ipfs://")) {
+                        imageURL = "https://ipfs.io/ipfs/${imageURL.substring(7)}"
+                    } else if (imageURL.startsWith("ar://")) {
+                        imageURL = "https://arweave.net/${imageURL.substring(5)}"
+                    }
+
+                    try {
+                        val imageConnection = URL(imageURL!!).openConnection() as HttpURLConnection
+                        imageConnection.requestMethod = "HEAD"
+
+                        if (imageConnection.responseCode == HttpURLConnection.HTTP_OK) {
+                            result.put("MetadataImageAvailable", true)
+                        }
+                    } catch (e: IOException) {
+                        println("Image fetch error: ${e.message}")
+                    }
+
+                    if (imageURL!!.startsWith("https://")) {
+                        result.put("ImageURIisHTTPS", true)
+                    }
+                }
+
+                if (json.has("description")) {
+                    trueCount += 1
+                }
+
+                if (json.has("attributes")) {
+                    trueCount += 1
+                }
+
+                if (trueCount == 4) {
+                    result.put("MetadataStandard", true)
+                }
+            } catch (e: Exception) {
+                println("JSON parsing error: ${e.message}")
+            }
+        }
+
+        result
+    } catch (e: Exception) {
+        println(e)
+        result
+    }
+}
+
 suspend fun chkNFTHolder(
     network: String,
     account: String,
@@ -2391,252 +2681,3 @@ suspend fun chkNFTHolder(
         result.put("error", e.message)
     }
 }
-
-
-//fun getNftsByWallet(mainNet: List<String>, address: String) {
-//    var res: JSONArray? = null
-//    var nfts = JSONArray()
-//    val client = OkHttpClient()
-//    for (network in mainNet) {
-//        if (network == "ethereum") {
-//            val request = Request.Builder()
-//                .url("https://eth-mainnet.g.alchemy.com/nft/v3/wQ1_uDwVHfjUnBs6_mkGxxGeC_v0yk71/getNFTsForOwner?owner=${address}&withMetadata=true&pageSize=100")
-//                .get()
-//                .addHeader("accept", "application/json")
-//                .build()
-//
-//            val response = client.newCall(request).execute()
-//            var strRes = response.body?.string()
-//            res = JSONObject(strRes).getJSONArray("ownedNfts")
-//        }
-//        if (network == "klaytn") {
-//            val request = Request.Builder()
-//                .url("https://th-api.klaytnapi.com/v2/account/${address}/token?kind=nft,mt")
-//                .get()
-//                .addHeader("Content_Type", "application/json")
-//                .addHeader("x-chain-id", "8217")
-//                .addHeader(
-//                    "Authorization",
-//                    "Basic S0FTS1JRVDUyWEJJRVZQT0E1TjQyR1lUOkE2djZpYXRRdEtEclB2RUlRNkszTHpLa1B2dC1pN0s0SXJ0N0dnUW8="
-//                )
-//                .build()
-//
-//            val response = client.newCall(request).execute()
-//            var strRes = response.body?.string()
-//            res = JSONObject(strRes).getJSONArray("items")
-//        }
-//        if (network == "polygon") {
-//            val request = Request.Builder()
-//                .url("https://polygon-mainnet.g.alchemy.com/nft/v3/9t7Gb13XKxec6h4TFepZa53BL5eTYLu9/getNFTsForOwner?owner=${address}&withMetadata=true&pageSize=100")
-//                .get()
-//                .addHeader("accept", "application/json")
-//                .build()
-//
-//            val response = client.newCall(request).execute()
-//            var strRes = response.body?.string()
-//            res = JSONObject(strRes).getJSONArray("ownedNfts")
-//        }
-//
-//        if (network == "binance") {
-//            val request = Request.Builder()
-//                .url("\"https://deep-index.moralis.io/api/v2/${address}/nft?chain=bsc&format=decimal&normalizeMetadata=true&media_items=false\"")
-//                .get()
-//                .addHeader(
-//                    "X-API-Key",
-//                    "nE1eXZWbbuaBlB0knb1vjNKs5WFcfv5SiqMqnXhRW3s3w1YeA4VAUhaMU2hFJ46i"
-//                )
-//                .addHeader("Content_Type", "application/json")
-//                .build()
-//
-//            val response = client.newCall(request).execute()
-//            var strRes = response.body?.string()
-//            res = JSONObject(strRes).getJSONArray("result")
-//        }
-//
-//        //println("Get Account:\n$res\n")
-//
-//        for (i in 0 until res!!.length()) {
-//            val item = res.getJSONObject(i)
-//
-//            var collection_id: String? = null
-//            var collection_name: String? = null
-//            var nft_type: String? = null
-//            var token_id: String? = null
-//            var tokenURI: String? = null
-//            var balance: String? = null
-//            var h_timestamp: String? = null // holder certification date
-//            var convertName: String? = null
-//            var convertImage: String? = null
-//            var convertDescription: String? = null
-//            var attributes: JSONArray? = null
-//            var convertAttributes: List<Attributes>? = null
-//            val turnsType = object : TypeToken<List<Attributes>>() {}.type
-//            var account_address: String? = null
-//            if (network == "ethereum" || network == "polygon") {
-//                // if(item.spamInfo) continue
-//                collection_id = item.getJSONObject("contract").getString("address")
-//                collection_name = item.getJSONObject("contract").optString("name")
-//                if (item.getJSONObject("contract").isNull("name")) {
-//                    collection_name =
-//                        item.getJSONObject("contract").optJSONObject("openSeaMetadata")
-//                            ?.optString("collectionName")
-//                }
-//                nft_type = item.getString("tokenType").lowercase()
-//                token_id = item.getString("tokenId")
-//                balance = item.getString("balance").toString()
-//                convertName = item.optString("name")
-//                convertDescription = item.optString("description")
-//                convertImage =
-//                    item.optJSONObject("raw")?.optJSONObject("metadata")?.optString("image")
-//                attributes =
-//                    item.optJSONObject("raw")?.optJSONObject("metadata")?.optJSONArray("attributes")
-//                convertAttributes = Gson().fromJson(attributes?.toString(), turnsType)
-//            } else if (network == "klaytn") {
-//                collection_id = item.getString("contractAddress")
-//                token_id = hexToDecimalString(item.getJSONObject("extras").getString("tokenId"))
-//                tokenURI = item.getJSONObject("extras").getString("tokenUri")
-//                if (tokenURI.startsWith("ipfs://")) tokenURI =
-//                    "https://ipfs.io/ipfs/" + tokenURI.split("ipfs://")[1]
-//                balance = hexToDecimalString(item.getString("balance"))
-//                nft_type = "erc721"
-//                if (item.getString("kind") == "mt") nft_type = "erc1155"
-//                var tokenRes = getMetadata(tokenURI!!)
-//                convertImage = tokenRes.optString("image")
-//                convertName = tokenRes.optString("name")
-//                convertDescription = tokenRes.optString("description")
-//                attributes = tokenRes.optJSONArray("attributes")
-//                convertAttributes = Gson().fromJson(attributes?.toString(), turnsType)
-//            } else if (network == "binance") {
-//                collection_id = item.getString("token_address")
-//                collection_name = item.optString("name")
-//                token_id = item.getString("token_id")
-//                balance = item.getString("amount")
-//                nft_type = item.getString("contract_type").lowercase()
-//                convertImage = item.optJSONObject("normalized_metadata")?.optString("image")
-//                convertName = item.optJSONObject("normalized_metadata")?.optString("name")
-//                convertDescription =
-//                    item.optJSONObject("normalized_metadata")?.optString("description")
-//                attributes = item.optJSONObject("normalized_metadata")?.optJSONArray("attributes")
-//                if (!item.isNull("token_uri") && item.optJSONObject("normalized_metadata")
-//                        .isNull("image")
-//                ) {
-//                    if (item.optString("token_uri").startsWith("ar://")) tokenURI =
-//                        "https://arweave.net/" + item.optString("token_uri").split("ar://")[1];
-//                    var tokenRes = getMetadata(tokenURI!!)
-//                    convertImage = tokenRes.optString("image")
-//                    convertName = tokenRes.optString("name")
-//                    convertDescription = tokenRes.optString("description")
-//                    attributes = tokenRes.optJSONArray("attributes")
-//                }
-//                convertAttributes = Gson().fromJson(attributes?.toString(), turnsType)
-//            }
-//            h_timestamp = getHolder(collection_id, token_id, address)
-//
-//            if (convertImage!!.startsWith("ipfs://")) convertImage =
-//                "https://ipfs.io/ipfs/" + convertImage.split("ipfs://")[1]
-//            if (convertImage.startsWith("ar://")) convertImage =
-//                "https://arweave.net/" + convertImage.split("ar://")[1]
-//            if (convertName.isNullOrEmpty() || convertName == "null") convertName = token_id
-//
-//            account_address = address
-//
-//            var nft = Nft(
-//                collection_id,
-//                collection_name,
-//                nft_type,
-//                token_id,
-//                tokenURI,
-//                balance,
-//                h_timestamp,// holder certification date
-//                convertName,
-//                convertImage,
-//                convertDescription,
-//                convertAttributes,
-//                account_address
-//            )
-//            var objRes = JSONObject(Gson().toJson(nft))
-//
-//            var chkCollection = false
-//            for (i in 0 until nfts.length()) {
-//                var item2 = nfts.getJSONObject(i)
-//                if (collection_id == item2.optString("collection_id")) {
-//                    item2.optJSONArray("token")?.put(objRes)
-//                    chkCollection = true
-//                    break
-//                }
-//            }
-//            if (!chkCollection) {
-//                var data = JSONObject()
-//                data.put("collection_id", collection_id)
-//                if (network == "klaytn" && nft_type == "erc721") collection_name =
-//                    getKlayNftCollectionName(collection_id)
-//                if (collection_name.isNullOrEmpty() || collection_name == "null") collection_name =
-//                    "$convertName ..."
-//                data.put("collection_name", collection_name)
-//                data.put("nft_type", nft_type)
-//                data.put("network", network)
-//                data.put("token", JSONArray())
-//                data.optJSONArray("token")?.put(objRes)
-//                nfts.put(data)
-//            }
-//        }
-//    }
-//    println(nfts)
-//}
-//
-//fun getMetadata(tokenURI: String): JSONObject {
-//    val client = OkHttpClient()
-//
-//    val request = Request.Builder()
-//        .url(tokenURI)
-//        .get()
-//        .addHeader("Content_Type", "application/json")
-//        .build()
-//
-//    val response = client.newCall(request).execute()
-//    var strRes = response.body?.string()
-//    return JSONObject(strRes)
-//}
-//
-//fun getKlayNftCollectionName(collection_id: String?): String {
-//    val client = OkHttpClient()
-//
-//    val request = Request.Builder()
-//        .url("https://th-api.klaytnapi.com/v2/contract/nft/$collection_id")
-//        .get()
-//        .addHeader("Content_Type", "application/json")
-//        .addHeader("x-chain-id", "8217")
-//        .addHeader(
-//            "Authorization",
-//            "Basic S0FTS1JRVDUyWEJJRVZQT0E1TjQyR1lUOkE2djZpYXRRdEtEclB2RUlRNkszTHpLa1B2dC1pN0s0SXJ0N0dnUW8="
-//        )
-//        .build()
-//
-//    val response = client.newCall(request).execute()
-//    var strRes = response.body?.string()
-//    return JSONObject(strRes).optString("name")
-//}
-//
-//fun getHolder(collection_id: String?, token_id: String?, address: String?): String? {
-//    val client = OkHttpClient()
-//
-//    val request = Request.Builder()
-//        .url("https://project.abc.ne.kr:19000/nft/holder/$collection_id/$token_id/$address")
-//        .get()
-//        .addHeader("Content_Type", "application/json")
-//        .build()
-//
-//    val response = client.newCall(request).execute()
-//    var strRes = response.body?.string()
-//    println(strRes)
-//    return JSONObject(strRes)?.optString("value")
-//}
-//
-//// Convert to hexadecimal string
-//fun hexToDecimalString(hex: String): String {
-//    return Integer.decode(hex).toString()
-//}
-//
-//fun decimalToHexString(decimal: Int): String {
-//    return Integer.toHexString(decimal)
-//}

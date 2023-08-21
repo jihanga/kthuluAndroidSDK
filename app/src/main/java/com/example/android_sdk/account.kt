@@ -622,9 +622,9 @@ suspend fun getTokenHistoryAsync(
                 "FROM " +
                 " token_transfer_table " +
                 "WHERE " +
-                " network = '$network' AND token_address = '$token_address' AND (`from` ='$owner_account' OR `to` ='$owner_account')"
-    "ORDER BY " +
-            " block_number DESC"
+                " network = '$network' AND token_address = '$token_address' AND (`from` ='$owner_account' OR `to` ='$owner_account')" +
+                "ORDER BY " +
+                " block_number DESC"
     connection?.use {
         val dbQueryExecutor = DBQueryExector(it)
         val resultSet = dbQueryExecutor.executeQuery(query)
@@ -765,7 +765,8 @@ suspend fun signMessage(
     fromAddress: String,
     collection_id: String,
     network: String,
-    token_id: String
+    token_id: String,
+    prefix: String
 ): String {
     val getAddressInfo = getAccountInfoAsync(fromAddress)
     val privateKey = runCatching {
@@ -779,7 +780,7 @@ suspend fun signMessage(
     }
     var message = ""
     val credentials = Credentials.create(privateKey)
-    val str = network+fromAddress+collection_id+token_id
+    val str = prefix+network+fromAddress+collection_id+token_id
     val hash = Hash.sha3(Numeric.toHexStringNoPrefix(str.toByteArray()))
 //    println("Hash$hash")
     if(network == "cypress") {
@@ -806,10 +807,11 @@ suspend fun getSignerAddressFromSignature(
     fromAddress: String,
     collection_id: String,
     network: String,
-    token_id: String
+    token_id: String,
+    prefix: String
 ): String {
     var message = ""
-    val str = network+fromAddress+collection_id+token_id
+    val str = prefix+network+fromAddress+collection_id+token_id
     val hash = Hash.sha3(Numeric.toHexStringNoPrefix(str.toByteArray()))
 //    println("Hash$hash")
 
