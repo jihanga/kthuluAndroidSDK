@@ -82,7 +82,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 //                println("setNFTsHide === "+ setNFTsHide)
 //                var deleteNFTsHide = deleteNFTsHide("polygon", "8xrhpmtw0w", "0xCfEEc46f729F6A7274ffC1eD4972276E96Cc7Ae5", "0xC16643b44E427A7C5Caa0C682Ec672F12B592e83", "15558")
 //                println("deleteNFTsHide === "+ deleteNFTsHide)
-//                var getNFTsHide = getNFTsHide(network = network, "8xrhpmtw0w")
+//                var getNFTsHide = getNFTsHide(network = network, account = accountArray)
 //                println("getNFTsHide === " + getNFTsHide)
 //                var getMintableAddress = getMintableAddress(owner = ownerArray)
 //                println("getMintableAddress === " + getMintableAddress)

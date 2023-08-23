@@ -34,11 +34,11 @@ import javax.crypto.Cipher
 fun sdkConnectTest(){
     println("SDK version:0.0.71, Connect OK")
 }
-
 var rpcUrl ="";
 var erc20BridgeContractAddress = "";
 var erc721DeployContractAddress = "";
 var erc1155DeployContractAddress = "";
+var erc20BridgeConfigContractAddress = "";
 
 fun networkSettings(network: String) {
     rpcUrl = when (network) {
@@ -52,9 +52,20 @@ fun networkSettings(network: String) {
         "tbnb" -> "https://data-seed-prebsc-1-s1.binance.org:8545"
         else -> throw IllegalArgumentException("Invalid main network type")
     }
+    erc20BridgeConfigContractAddress = when (network) {
+        "ethereum" -> "0xf643a4fb01cbbfb561cc906c1f37d5718ef3bba3"
+        "cypress" -> "0x33fcf21e795447cc1668ef2ca06dbf78eb180763"
+        "polygon" -> "0xf643a4fb01cbbfb561cc906c1f37d5718ef3bba3"
+        "bnb" -> ""
+        "goerli" -> ""
+        "baobab" -> ""
+        "mumbai" -> ""
+        "tbnb" -> ""
+        else -> throw IllegalArgumentException("Invalid main network type")
+    }
     erc20BridgeContractAddress = when (network) {
-        "ethereum" -> ""
-        "cypress" -> ""
+        "ethereum" -> "0x7362fa30ada8ccf2130017f2a8f0b6be78aa38de"
+        "cypress" -> "0xb7e2b748364c7d38311444a62a57d76dd697e99b"
         "polygon" -> "0x7362fa30ada8ccf2130017f2a8f0b6be78aa38de"
         "bnb" -> ""
         "goerli" -> "0xc11735Ce3c155E755bC9839A5B5d06dEa0482306"

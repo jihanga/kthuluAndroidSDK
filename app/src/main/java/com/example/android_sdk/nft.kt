@@ -1072,16 +1072,16 @@ suspend fun getNFTsHide(
 
 suspend fun sendNFT721TransactionAsync(
     network: String,
-    fromAddress: String,
-    toAddress: String,
-    tokenId: String,
-    nftContractAddress: String
+    from: String,
+    to: String,
+    token_id: String,
+    collection_id: String
 ): JSONObject = withContext(Dispatchers.IO){
     networkSettings(network)
     val jsonData = JSONObject()
 
     try {
-        val getAddressInfo = getAccountInfoAsync(fromAddress)
+        val getAddressInfo = getAccountInfoAsync(from)
         val privateKey = runCatching {
             getAddressInfo.getJSONArray("value")
                 .getJSONObject(0)
@@ -1098,12 +1098,12 @@ suspend fun sendNFT721TransactionAsync(
 
         val function = Function(
             "safeTransferFrom",
-            listOf(Address(fromAddress), Address(toAddress), Uint256(BigInteger(tokenId))),
+            listOf(Address(from), Address(to), Uint256(BigInteger(token_id))),
             emptyList()
         )
         val encodedFunction = FunctionEncoder.encode(function)
 
-        val nonce = web3j.ethGetTransactionCount(fromAddress, DefaultBlockParameterName.PENDING)
+        val nonce = web3j.ethGetTransactionCount(from, DefaultBlockParameterName.PENDING)
             .sendAsync()
             .get()
             .transactionCount
@@ -1116,13 +1116,13 @@ suspend fun sendNFT721TransactionAsync(
                 getEstimateGasAsync(
                     network,
                     "transferERC721",
-                    nftContractAddress,
-                    fromAddress,
-                    toAddress,
+                    collection_id,
+                    from,
+                    to,
                     null,
-                    tokenId
+                    token_id
                 ), // Add 20% to the gas limit
-                nftContractAddress,
+                collection_id,
                 encodedFunction
             )
         } else {
@@ -1132,13 +1132,13 @@ suspend fun sendNFT721TransactionAsync(
                 getEstimateGasAsync(
                     network,
                     "transferERC721",
-                    nftContractAddress,
-                    fromAddress,
-                    toAddress,
+                    collection_id,
+                    from,
+                    to,
                     null,
-                    tokenId
+                    token_id
                 ),
-                nftContractAddress,
+                collection_id,
                 BigInteger.ZERO,
                 encodedFunction,
                 //1gwei
@@ -1161,16 +1161,16 @@ suspend fun sendNFT721TransactionAsync(
 
 suspend fun sendNFT1155TransactionAsync(
     network: String,
-    fromAddress: String,
-    toAddress: String,
-    tokenId: String,
-    nftContractAddress: String,
+    from: String,
+    to: String,
+    token_id: String,
+    collection_id: String,
     amount: String,
 ): JSONObject = withContext(Dispatchers.IO) {
     val jsonData = JSONObject()
     networkSettings(network)
     try {
-        val getAddressInfo = getAccountInfoAsync(fromAddress)
+        val getAddressInfo = getAccountInfoAsync(from)
         val privateKey = runCatching {
             getAddressInfo.getJSONArray("value")
                 .getJSONObject(0)
@@ -1196,14 +1196,14 @@ suspend fun sendNFT1155TransactionAsync(
         val function = Function(
             "safeTransferFrom",
             listOf(
-                Address(fromAddress), Address(toAddress), Uint256(BigInteger(tokenId)),
+                Address(from), Address(to), Uint256(BigInteger(token_id)),
                 Uint256(BigInteger(amount)), DynamicBytes(byteArrayOf(0))
             ),
             emptyList()
         )
         val encodedFunction = FunctionEncoder.encode(function)
 
-        val nonce = web3j.ethGetTransactionCount(fromAddress, DefaultBlockParameterName.PENDING)
+        val nonce = web3j.ethGetTransactionCount(from, DefaultBlockParameterName.PENDING)
             .sendAsync()
             .get()
             .transactionCount
@@ -1218,21 +1218,21 @@ suspend fun sendNFT1155TransactionAsync(
                 getEstimateGasAsync(
                     network,
                     "transferERC1155",
-                    nftContractAddress,
-                    fromAddress,
-                    toAddress,
+                    collection_id,
+                    from,
+                    to,
                     amount,
-                    tokenId
+                    token_id
                 ), // Add 20% to the gas limit
-                nftContractAddress,
+                collection_id,
                 encodedFunction
             )
         } else {
             RawTransaction.createTransaction(
                 chainId,
                 nonce,
-                getEstimateGasAsync(network, "transferERC1155",nftContractAddress, fromAddress, toAddress, amount, tokenId),
-                nftContractAddress,
+                getEstimateGasAsync(network, "transferERC1155",collection_id, from, to, amount, token_id),
+                collection_id,
                 BigInteger.ZERO,
                 encodedFunction,
                 //1gwei
@@ -1255,15 +1255,15 @@ suspend fun sendNFT1155TransactionAsync(
 
 suspend fun sendNFT721BatchTransactionAsync(
     network: String,
-    fromAddress: String,
-    toAddress: String,
-    tokenId: Array<String>,
-    nftContractAddress: String
+    from: String,
+    to: String,
+    token_id: Array<String>,
+    collection_id: String
 ): JSONObject = withContext(Dispatchers.IO) {
     val jsonData = JSONObject()
     networkSettings(network)
     try {
-        val getAddressInfo = getAccountInfoAsync(fromAddress)
+        val getAddressInfo = getAccountInfoAsync(from)
         val privateKey = runCatching {
             getAddressInfo.getJSONArray("value")
                 .getJSONObject(0)
@@ -1279,18 +1279,18 @@ suspend fun sendNFT721BatchTransactionAsync(
 
         val ethGasPrice = web3j.ethGasPrice().sendAsync().get()
 
-        val batchTokenId = tokenId.map { Uint256(BigInteger(it)) }
+        val batchTokenId = token_id.map { Uint256(BigInteger(it)) }
 
         val function = Function(
             "safeBatchTransferFrom",
             listOf(
-                Address(fromAddress), Address(toAddress), DynamicArray(batchTokenId)
+                Address(from), Address(to), DynamicArray(batchTokenId)
             ),
             emptyList()
         )
         val encodedFunction = FunctionEncoder.encode(function)
 
-        val nonce = web3j.ethGetTransactionCount(fromAddress, DefaultBlockParameterName.PENDING)
+        val nonce = web3j.ethGetTransactionCount(from, DefaultBlockParameterName.PENDING)
             .sendAsync()
             .get()
             .transactionCount
@@ -1305,17 +1305,17 @@ suspend fun sendNFT721BatchTransactionAsync(
                 getEstimateGasAsync(
                     network,
                     "batchTransferERC721",
-                    nftContractAddress,
-                    fromAddress,
-                    toAddress,
+                    collection_id,
+                    from,
+                    to,
                     null,
                     null,
                     null,
                     null,
                     null,
-                    tokenId
+                    token_id
                 ), // Add 20% to the gas limit
-                nftContractAddress,
+                collection_id,
                 encodedFunction
             )
         } else {
@@ -1325,17 +1325,17 @@ suspend fun sendNFT721BatchTransactionAsync(
                 getEstimateGasAsync(
                     network,
                     "batchTransferERC721",
-                    nftContractAddress,
-                    fromAddress,
-                    toAddress,
+                    collection_id,
+                    from,
+                    to,
                     null,
                     null,
                     null,
                     null,
                     null,
-                    tokenId
+                    token_id
                 ), // Add 20% to the gas limit
-                nftContractAddress,
+                collection_id,
                 BigInteger.ZERO,
                 encodedFunction,
                 //1gwei
@@ -1358,10 +1358,10 @@ suspend fun sendNFT721BatchTransactionAsync(
 
 suspend fun sendNFT1155BatchTransactionAsync(
     network: String,
-    fromAddress: String,
-    toAddress: String,
-    tokenId: Array<String>,
-    nftContractAddress: String,
+    from: String,
+    to: String,
+    token_id: Array<String>,
+    collection_id: String,
     amount: Array<String>,
 ): JSONObject = withContext(Dispatchers.IO) {
 
@@ -1369,7 +1369,7 @@ suspend fun sendNFT1155BatchTransactionAsync(
     val jsonData = JSONObject()
 
     try {
-        val getAddressInfo = getAccountInfoAsync(fromAddress)
+        val getAddressInfo = getAccountInfoAsync(from)
         val privateKey = runCatching {
             getAddressInfo.getJSONArray("value")
                 .getJSONObject(0)
@@ -1393,19 +1393,19 @@ suspend fun sendNFT1155BatchTransactionAsync(
                 return@withContext jsonData
             }
         }
-        val batchTokenId = tokenId.map { Uint256(BigInteger(it)) }
+        val batchTokenId = token_id.map { Uint256(BigInteger(it)) }
         val batchAmount = amount.map { Uint256(BigInteger(it)) }
 
         val function = Function(
             "safeBatchTransferFrom",
             listOf(
-                Address(fromAddress), Address(toAddress), DynamicArray(batchTokenId), DynamicArray(batchAmount), DynamicBytes(byteArrayOf(0))
+                Address(from), Address(to), DynamicArray(batchTokenId), DynamicArray(batchAmount), DynamicBytes(byteArrayOf(0))
             ),
             emptyList()
         )
         val encodedFunction = FunctionEncoder.encode(function)
 
-        val nonce = web3j.ethGetTransactionCount(fromAddress, DefaultBlockParameterName.PENDING)
+        val nonce = web3j.ethGetTransactionCount(from, DefaultBlockParameterName.PENDING)
             .sendAsync()
             .get()
             .transactionCount
@@ -1420,18 +1420,18 @@ suspend fun sendNFT1155BatchTransactionAsync(
                 getEstimateGasAsync(
                     network,
                     "batchTransferERC1155",
-                    nftContractAddress,
-                    fromAddress,
-                    toAddress,
+                    collection_id,
+                    from,
+                    to,
                     null,
                     null,
                     null,
                     null,
                     null,
-                    tokenId,
+                    token_id,
                     amount
                 ), // Add 20% to the gas limit
-                nftContractAddress,
+                collection_id,
                 encodedFunction
             )
         } else {
@@ -1441,18 +1441,18 @@ suspend fun sendNFT1155BatchTransactionAsync(
                 getEstimateGasAsync(
                     network,
                     "batchTransferERC1155",
-                    nftContractAddress,
-                    fromAddress,
-                    toAddress,
+                    collection_id,
+                    from,
+                    to,
                     null,
                     null,
                     null,
                     null,
                     null,
-                    tokenId,
+                    token_id,
                     amount
                 ), // Add 20% to the gas limit
-                nftContractAddress,
+                collection_id,
                 BigInteger.ZERO,
                 encodedFunction,
                 //1gwei
@@ -1475,18 +1475,18 @@ suspend fun sendNFT1155BatchTransactionAsync(
 
 suspend fun deployErc721Async(
     network: String,
-    fromAddress: String,
+    from: String,
     name: String,
     symbol: String,
-    baseURI: String,
+    token_base_uri: String,
     owner: String,
-    uriType: String
+    uri_type: String
 ): JSONObject = withContext(Dispatchers.IO) {
     networkSettings(network)
     val jsonData = JSONObject()
 
     try {
-        val getAddressInfo = getAccountInfoAsync(fromAddress)
+        val getAddressInfo = getAccountInfoAsync(from)
         val privateKey = runCatching {
             getAddressInfo.getJSONArray("value")
                 .getJSONObject(0)
@@ -1505,15 +1505,15 @@ suspend fun deployErc721Async(
             listOf(
                 Utf8String(name),
                 Utf8String(symbol),
-                Utf8String(baseURI),
-                Uint8(BigInteger(uriType)),
+                Utf8String(token_base_uri),
+                Uint8(BigInteger(uri_type)),
                 Address(owner)
             ),
             emptyList()
         )
         val encodedFunction = FunctionEncoder.encode(function)
 
-        val nonce = web3j.ethGetTransactionCount(fromAddress, DefaultBlockParameterName.PENDING)
+        val nonce = web3j.ethGetTransactionCount(from, DefaultBlockParameterName.PENDING)
             .sendAsync()
             .get()
             .transactionCount
@@ -1527,7 +1527,7 @@ suspend fun deployErc721Async(
                     network,
                     "deployERC721",
                     null,
-                    fromAddress,
+                    from,
                     null,
                     null,
                     null,
@@ -1536,7 +1536,7 @@ suspend fun deployErc721Async(
                     null,
                     null,
                     null,
-                    name, symbol, owner, baseURI, uriType
+                    name, symbol, owner, token_base_uri, uri_type
                 ), // Add 20% to the gas limit
                 erc721DeployContractAddress,
                 encodedFunction
@@ -1549,7 +1549,7 @@ suspend fun deployErc721Async(
                     network,
                     "deployERC721",
                     null,
-                    fromAddress,
+                    from,
                     null,
                     null,
                     null,
@@ -1558,7 +1558,7 @@ suspend fun deployErc721Async(
                     null,
                     null,
                     null,
-                    name, symbol, owner, baseURI, uriType
+                    name, symbol, owner, token_base_uri, uri_type
                 ),
                 erc721DeployContractAddress,
                 BigInteger.ZERO,
@@ -1583,18 +1583,18 @@ suspend fun deployErc721Async(
 
 suspend fun deployErc1155Async(
     network: String,
-    fromAddress: String,
+    from: String,
     name: String,
     symbol: String,
-    baseURI: String,
+    token_base_uri: String,
     owner: String,
-    uriType: String
+    uri_type: String
 ): JSONObject = withContext(Dispatchers.IO) {
     networkSettings(network)
     val jsonData = JSONObject()
 
     try {
-        val getAddressInfo = getAccountInfoAsync(fromAddress)
+        val getAddressInfo = getAccountInfoAsync(from)
         val privateKey = runCatching {
             getAddressInfo.getJSONArray("value")
                 .getJSONObject(0)
@@ -1613,15 +1613,15 @@ suspend fun deployErc1155Async(
             listOf(
                 Utf8String(name),
                 Utf8String(symbol),
-                Utf8String(baseURI),
-                Uint8(BigInteger(uriType)),
+                Utf8String(token_base_uri),
+                Uint8(BigInteger(uri_type)),
                 Address(owner)
             ),
             emptyList()
         )
         val encodedFunction = FunctionEncoder.encode(function)
 
-        val nonce = web3j.ethGetTransactionCount(fromAddress, DefaultBlockParameterName.PENDING)
+        val nonce = web3j.ethGetTransactionCount(from, DefaultBlockParameterName.PENDING)
             .sendAsync()
             .get()
             .transactionCount
@@ -1635,7 +1635,7 @@ suspend fun deployErc1155Async(
                     network,
                     "deployERC1155",
                     null,
-                    fromAddress,
+                    from,
                     null,
                     null,
                     null,
@@ -1644,7 +1644,7 @@ suspend fun deployErc1155Async(
                     null,
                     null,
                     null,
-                    name, symbol, owner, baseURI, uriType
+                    name, symbol, owner, token_base_uri, uri_type
                 ), // Add 20% to the gas limit
                 erc1155DeployContractAddress,
                 encodedFunction
@@ -1657,7 +1657,7 @@ suspend fun deployErc1155Async(
                     network,
                     "deployERC1155",
                     null,
-                    fromAddress,
+                    from,
                     null,
                     null,
                     null,
@@ -1666,7 +1666,7 @@ suspend fun deployErc1155Async(
                     null,
                     null,
                     null,
-                    name, symbol, owner, baseURI, uriType
+                    name, symbol, owner, token_base_uri, uri_type
                 ),
                 erc1155DeployContractAddress,
                 BigInteger.ZERO,
@@ -1692,17 +1692,17 @@ suspend fun deployErc1155Async(
 
 suspend fun mintErc721Async(
     network: String,
-    fromAddress: String,
-    toAddress: String,
-    tokenURI: String,
-    tokenId: String,
-    nftContractAddress: String
+    from: String,
+    to: String,
+    token_uri: String,
+    token_id: String,
+    collection_id: String
 ): JSONObject = withContext(Dispatchers.IO){
     networkSettings(network)
     val jsonData = JSONObject()
 
     try {
-        val getAddressInfo = getAccountInfoAsync(fromAddress)
+        val getAddressInfo = getAccountInfoAsync(from)
         val privateKey = runCatching {
             getAddressInfo.getJSONArray("value")
                 .getJSONObject(0)
@@ -1718,12 +1718,12 @@ suspend fun mintErc721Async(
 
         val function = Function(
             "mint",
-            listOf(Address(toAddress), Uint256(BigInteger(tokenId)), Utf8String(tokenURI)),
+            listOf(Address(to), Uint256(BigInteger(token_id)), Utf8String(token_uri)),
             emptyList()
         )
         val encodedFunction = FunctionEncoder.encode(function)
 
-        val nonce = web3j.ethGetTransactionCount(fromAddress, DefaultBlockParameterName.PENDING)
+        val nonce = web3j.ethGetTransactionCount(from, DefaultBlockParameterName.PENDING)
             .sendAsync()
             .get()
             .transactionCount
@@ -1736,15 +1736,15 @@ suspend fun mintErc721Async(
                 getEstimateGasAsync(
                     network,
                     "mintERC721",
-                    nftContractAddress,
-                    fromAddress,
-                    toAddress,
+                    collection_id,
+                    from,
+                    to,
                     null,
-                    tokenId,
+                    token_id,
                     null, null, null, null, null, null, null, null, null, null,
-                    tokenURI
+                    token_uri
                 ), // Add 20% to the gas limit
-                nftContractAddress,
+                collection_id,
                 encodedFunction
             )
         } else {
@@ -1754,15 +1754,15 @@ suspend fun mintErc721Async(
                 getEstimateGasAsync(
                     network,
                     "mintERC721",
-                    nftContractAddress,
-                    fromAddress,
-                    toAddress,
+                    collection_id,
+                    from,
+                    to,
                     null,
-                    tokenId,
+                    token_id,
                     null, null, null, null, null, null, null, null, null, null,
-                    tokenURI
+                    token_uri
                 ), // Add 20% to the gas limit
-                nftContractAddress,
+                collection_id,
                 BigInteger.ZERO,
                 encodedFunction,
                 //0.1gwei
@@ -1785,18 +1785,18 @@ suspend fun mintErc721Async(
 
 suspend fun mintErc1155Async(
     network: String,
-    fromAddress: String,
-    toAddress: String,
-    tokenURI: String,
-    tokenId: String,
-    nftContractAddress: String,
+    from: String,
+    to: String,
+    token_uri: String,
+    token_id: String,
+    collection_id: String,
     amount: String
 ): JSONObject = withContext(Dispatchers.IO){
     networkSettings(network)
     val jsonData = JSONObject()
 
     try {
-        val getAddressInfo = getAccountInfoAsync(fromAddress)
+        val getAddressInfo = getAccountInfoAsync(from)
         val privateKey = runCatching {
             getAddressInfo.getJSONArray("value")
                 .getJSONObject(0)
@@ -1812,12 +1812,12 @@ suspend fun mintErc1155Async(
 
         val function = Function(
             "mint",
-            listOf(Address(toAddress), Uint256(BigInteger(tokenId)), Uint256(BigInteger(amount)), Utf8String(tokenURI), DynamicBytes(byteArrayOf(0))),
+            listOf(Address(to), Uint256(BigInteger(token_id)), Uint256(BigInteger(amount)), Utf8String(token_uri), DynamicBytes(byteArrayOf(0))),
             emptyList()
         )
         val encodedFunction = FunctionEncoder.encode(function)
 
-        val nonce = web3j.ethGetTransactionCount(fromAddress, DefaultBlockParameterName.PENDING)
+        val nonce = web3j.ethGetTransactionCount(from, DefaultBlockParameterName.PENDING)
             .sendAsync()
             .get()
             .transactionCount
@@ -1830,15 +1830,15 @@ suspend fun mintErc1155Async(
                 getEstimateGasAsync(
                     network,
                     "mintERC1155",
-                    nftContractAddress,
-                    fromAddress,
-                    toAddress,
+                    collection_id,
+                    from,
+                    to,
                     amount,
-                    tokenId,
+                    token_id,
                     null, null, null, null, null, null, null, null, null, null,
-                    tokenURI
+                    token_uri
                 ), // Add 20% to the gas limit
-                nftContractAddress,
+                collection_id,
                 encodedFunction
             )
         } else {
@@ -1848,15 +1848,15 @@ suspend fun mintErc1155Async(
                 getEstimateGasAsync(
                     network,
                     "mintERC1155",
-                    nftContractAddress,
-                    fromAddress,
-                    toAddress,
+                    collection_id,
+                    from,
+                    to,
                     amount,
-                    tokenId,
+                    token_id,
                     null, null, null, null, null, null, null, null, null, null,
-                    tokenURI
+                    token_uri
                 ), // Add 20% to the gas limit
-                nftContractAddress,
+                collection_id,
                 BigInteger.ZERO,
                 encodedFunction,
                 //0.1gwei
@@ -1879,17 +1879,17 @@ suspend fun mintErc1155Async(
 
 suspend fun batchMintErc721Async(
     network: String,
-    fromAddress: String,
-    toAddress: String,
-    tokenURI: Array<String>,
-    tokenId: Array<String>,
-    nftContractAddress: String
+    from: String,
+    to: String,
+    token_uri: Array<String>,
+    token_id: Array<String>,
+    collection_id: String
 ): JSONObject = withContext(Dispatchers.IO){
     networkSettings(network)
     val jsonData = JSONObject()
 
     try {
-        val getAddressInfo = getAccountInfoAsync(fromAddress)
+        val getAddressInfo = getAccountInfoAsync(from)
         val privateKey = runCatching {
             getAddressInfo.getJSONArray("value")
                 .getJSONObject(0)
@@ -1903,17 +1903,17 @@ suspend fun batchMintErc721Async(
         val credentials =
             Credentials.create(privateKey)
 
-        val batchTokenId = tokenId.map { Uint256(BigInteger(it)) }
-        val batchTokenURI = tokenURI.map { Utf8String(it) }
+        val batchTokenId = token_id.map { Uint256(BigInteger(it)) }
+        val batchTokenURI = token_uri.map { Utf8String(it) }
 
         val function = Function(
             "mintBatch",
-            listOf(Address(toAddress), DynamicArray(batchTokenId), DynamicArray(batchTokenURI)),
+            listOf(Address(to), DynamicArray(batchTokenId), DynamicArray(batchTokenURI)),
             emptyList()
         )
         val encodedFunction = FunctionEncoder.encode(function)
 
-        val nonce = web3j.ethGetTransactionCount(fromAddress, DefaultBlockParameterName.PENDING)
+        val nonce = web3j.ethGetTransactionCount(from, DefaultBlockParameterName.PENDING)
             .sendAsync()
             .get()
             .transactionCount
@@ -1926,15 +1926,15 @@ suspend fun batchMintErc721Async(
                 getEstimateGasAsync(
                     network,
                     "batchMintERC721",
-                    nftContractAddress,
-                    fromAddress,
-                    toAddress,
+                    collection_id,
+                    from,
+                    to,
                     null,
                     null,
-                    null, null, null, tokenId, null, null, null, null, null, null,
-                    null, tokenURI
+                    null, null, null, token_id, null, null, null, null, null, null,
+                    null, token_uri
                 ), // Add 20% to the gas limit
-                nftContractAddress,
+                collection_id,
                 encodedFunction
             )
         } else {
@@ -1944,15 +1944,15 @@ suspend fun batchMintErc721Async(
                 getEstimateGasAsync(
                     network,
                     "batchMintERC721",
-                    nftContractAddress,
-                    fromAddress,
-                    toAddress,
+                    collection_id,
+                    from,
+                    to,
                     null,
                     null,
-                    null, null, null, tokenId, null, null, null, null, null, null,
-                    null, tokenURI
+                    null, null, null, token_id, null, null, null, null, null, null,
+                    null, token_uri
                 ), // Add 20% to the gas limit
-                nftContractAddress,
+                collection_id,
                 BigInteger.ZERO,
                 encodedFunction,
                 //0.1gwei
@@ -1974,18 +1974,18 @@ suspend fun batchMintErc721Async(
 }
 suspend fun batchMintErc1155Async(
     network: String,
-    fromAddress: String,
-    toAddress: String,
-    tokenURI: Array<String>,
-    tokenId: Array<String>,
-    nftContractAddress: String,
+    from: String,
+    to: String,
+    token_uri: Array<String>,
+    token_id: Array<String>,
+    collection_id: String,
     amount: Array<String>
 ): JSONObject = withContext(Dispatchers.IO){
     networkSettings(network)
     val jsonData = JSONObject()
 
     try {
-        val getAddressInfo = getAccountInfoAsync(fromAddress)
+        val getAddressInfo = getAccountInfoAsync(from)
         val privateKey = runCatching {
             getAddressInfo.getJSONArray("value")
                 .getJSONObject(0)
@@ -1999,18 +1999,18 @@ suspend fun batchMintErc1155Async(
         val credentials =
             Credentials.create(privateKey)
 
-        val batchTokenId = tokenId.map { Uint256(BigInteger(it)) }
+        val batchTokenId = token_id.map { Uint256(BigInteger(it)) }
         val batchAmount = amount.map { Uint256(BigInteger(it)) }
-        val batchTokenURI = tokenURI.map { Utf8String(it) }
+        val batchTokenURI = token_uri.map { Utf8String(it) }
 
         val function = Function(
             "mintBatch",
-            listOf(Address(toAddress), DynamicArray(batchTokenId), DynamicArray(batchAmount), DynamicArray(batchTokenURI), DynamicBytes(byteArrayOf(0))),
+            listOf(Address(to), DynamicArray(batchTokenId), DynamicArray(batchAmount), DynamicArray(batchTokenURI), DynamicBytes(byteArrayOf(0))),
             emptyList()
         )
         val encodedFunction = FunctionEncoder.encode(function)
 
-        val nonce = web3j.ethGetTransactionCount(fromAddress, DefaultBlockParameterName.PENDING)
+        val nonce = web3j.ethGetTransactionCount(from, DefaultBlockParameterName.PENDING)
             .sendAsync()
             .get()
             .transactionCount
@@ -2023,15 +2023,15 @@ suspend fun batchMintErc1155Async(
                 getEstimateGasAsync(
                     network,
                     "batchMintERC1155",
-                    nftContractAddress,
-                    fromAddress,
-                    toAddress,
+                    collection_id,
+                    from,
+                    to,
                     null,
                     null,
-                    null, null, null, tokenId, amount, null, null, null, null, null,
-                    null, tokenURI
+                    null, null, null, token_id, amount, null, null, null, null, null,
+                    null, token_uri
                 ), // Add 20% to the gas limit
-                nftContractAddress,
+                collection_id,
                 encodedFunction
             )
         } else {
@@ -2041,15 +2041,15 @@ suspend fun batchMintErc1155Async(
                 getEstimateGasAsync(
                     network,
                     "batchMintERC1155",
-                    nftContractAddress,
-                    fromAddress,
-                    toAddress,
+                    collection_id,
+                    from,
+                    to,
                     null,
                     null,
-                    null, null, null, tokenId, amount, null, null, null, null, null,
-                    null, tokenURI
+                    null, null, null, token_id, amount, null, null, null, null, null,
+                    null, token_uri
                 ), // Add 20% to the gas limit
-                nftContractAddress,
+                collection_id,
                 BigInteger.ZERO,
                 encodedFunction,
                 //0.1gwei
@@ -2072,15 +2072,15 @@ suspend fun batchMintErc1155Async(
 
 suspend fun burnErc721Async(
     network: String,
-    fromAddress: String,
-    tokenId: String,
-    nftContractAddress: String
+    owner: String,
+    token_id: String,
+    collection_id: String
 ): JSONObject = withContext(Dispatchers.IO){
     networkSettings(network)
     val jsonData = JSONObject()
 
     try {
-        val getAddressInfo = getAccountInfoAsync(fromAddress)
+        val getAddressInfo = getAccountInfoAsync(owner)
         val privateKey = runCatching {
             getAddressInfo.getJSONArray("value")
                 .getJSONObject(0)
@@ -2096,12 +2096,12 @@ suspend fun burnErc721Async(
 
         val function = Function(
             "burn",
-            listOf(Uint256(BigInteger(tokenId))),
+            listOf(Uint256(BigInteger(token_id))),
             emptyList()
         )
         val encodedFunction = FunctionEncoder.encode(function)
 
-        val nonce = web3j.ethGetTransactionCount(fromAddress, DefaultBlockParameterName.PENDING)
+        val nonce = web3j.ethGetTransactionCount(owner, DefaultBlockParameterName.PENDING)
             .sendAsync()
             .get()
             .transactionCount
@@ -2114,15 +2114,15 @@ suspend fun burnErc721Async(
                 getEstimateGasAsync(
                     network,
                     "burnERC721",
-                    nftContractAddress,
-                    fromAddress,
+                    collection_id,
+                    owner,
                     null,
                     null,
-                    tokenId,
+                    token_id,
                     null, null, null, null, null, null, null, null, null, null,
                     null, null
                 ), // Add 20% to the gas limit
-                nftContractAddress,
+                collection_id,
                 encodedFunction
             )
         } else {
@@ -2132,15 +2132,15 @@ suspend fun burnErc721Async(
                 getEstimateGasAsync(
                     network,
                     "burnERC721",
-                    nftContractAddress,
-                    fromAddress,
+                    collection_id,
+                    owner,
                     null,
                     null,
-                    tokenId,
+                    token_id,
                     null, null, null, null, null, null, null, null, null, null,
                     null, null
                 ), // Add 20% to the gas limit
-                nftContractAddress,
+                collection_id,
                 BigInteger.ZERO,
                 encodedFunction,
                 //0.1gwei
@@ -2163,16 +2163,16 @@ suspend fun burnErc721Async(
 
 suspend fun burnErc1155Async(
     network: String,
-    fromAddress: String,
-    tokenId: String,
-    nftContractAddress: String,
+    owner: String,
+    token_id: String,
+    collection_id: String,
     amount: String
 ): JSONObject = withContext(Dispatchers.IO){
     networkSettings(network)
     val jsonData = JSONObject()
 
     try {
-        val getAddressInfo = getAccountInfoAsync(fromAddress)
+        val getAddressInfo = getAccountInfoAsync(owner)
         val privateKey = runCatching {
             getAddressInfo.getJSONArray("value")
                 .getJSONObject(0)
@@ -2188,12 +2188,12 @@ suspend fun burnErc1155Async(
 
         val function = Function(
             "burn",
-            listOf(Address(fromAddress), Uint256(BigInteger(tokenId)), Uint256(BigInteger(amount))),
+            listOf(Address(owner), Uint256(BigInteger(token_id)), Uint256(BigInteger(amount))),
             emptyList()
         )
         val encodedFunction = FunctionEncoder.encode(function)
 
-        val nonce = web3j.ethGetTransactionCount(fromAddress, DefaultBlockParameterName.PENDING)
+        val nonce = web3j.ethGetTransactionCount(owner, DefaultBlockParameterName.PENDING)
             .sendAsync()
             .get()
             .transactionCount
@@ -2206,15 +2206,15 @@ suspend fun burnErc1155Async(
                 getEstimateGasAsync(
                     network,
                     "burnERC1155",
-                    nftContractAddress,
-                    fromAddress,
+                    collection_id,
+                    owner,
                     null,
                     amount,
-                    tokenId,
+                    token_id,
                     null, null, null, null, null, null, null, null, null, null,
                     null, null
                 ), // Add 20% to the gas limit
-                nftContractAddress,
+                collection_id,
                 encodedFunction
             )
         } else {
@@ -2224,15 +2224,15 @@ suspend fun burnErc1155Async(
                 getEstimateGasAsync(
                     network,
                     "burnERC1155",
-                    nftContractAddress,
-                    fromAddress,
+                    collection_id,
+                    owner,
                     null,
                     amount,
-                    tokenId,
+                    token_id,
                     null, null, null, null, null, null, null, null, null, null,
                     null, null
                 ), // Add 20% to the gas limit
-                nftContractAddress,
+                collection_id,
                 BigInteger.ZERO,
                 encodedFunction,
                 //0.1gwei

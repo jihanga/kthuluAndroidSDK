@@ -81,19 +81,34 @@ suspend fun transaction() = runBlocking<Unit> {
 //         * Transaction hash: 0x..
 //         */
 
-        val bridgeToken =
-            async {
-                bridgeTokenAsync(
-                    "polygon",
-                    "ETHEREUM",
-                    "0x0000000000000000000000000000000000000001",
-                    "0.00000001"
-                )
-            }.await()
-        println("Transaction hash: ${bridgeToken}")
-        /**
-         * Transaction hash: 0x..
-         */
+        // val bridgeToken =
+        //     async {
+        //         bridgeTokenAsync(
+        //             "polygon",
+        //             "ETHEREUM",
+        //             "0x0000000000000000000000000000000000000001",
+        //             "0.00000001"
+        //         )
+        //     }.await()
+        // println("Transaction hash: ${bridgeToken}")
+        // /**
+        //  * Transaction hash: 0x..
+        //  */
+
+        //  val bridgeToken =
+        //     async {
+        //         bridgeTokenAsync(
+        //             "cypress",
+        //             fromAddress,
+        //             "POLYGON",
+        //             "10000000000000000",
+        //             "0x085AB24e511bEa905bDe815FA38a11eEB507E206"
+        //         )
+        //     }.await()
+        // println("Transaction hash: ${bridgeToken}")
+        // /**
+        //  * Transaction hash: 0x..
+        //  */
 
     }
 }
@@ -489,3 +504,115 @@ suspend fun bridgeTokenAsync(
         jsonData.put("error", e.message)
     }
 }
+//
+//suspend fun bridgeTokenAsync(
+//    network: String,
+//    fromAddress: String,
+//    toNetwork: String,
+//    amount: String,
+//    token_address: String
+//): JSONObject = withContext(Dispatchers.IO){
+//    val jsonData = JSONObject()
+//    networkSettings(network)
+//    val getAddressInfo = getAccountInfoAsync(fromAddress)
+//    val privateKey = runCatching {
+//        getAddressInfo.getJSONArray("value")
+//            .getJSONObject(0)
+//            .getString("private")
+//    }.getOrElse {
+//        // handle error here
+//        println("Error while fetching the private key: ${it.message}")
+//        null
+//    }
+//
+//    try {
+//        val web3j = Web3j.build(HttpService(rpcUrl))
+//        val credentials =
+//            Credentials.create(privateKey)
+//
+//        val hex = textToHex(toNetwork)
+//
+//        // Convert hex string to BigInteger
+//        val toNetworkHex = BigInteger(hex, 16)
+//
+//        val function = Function(
+//            "moveFromERC20",
+//            listOf(Uint256(toNetworkHex), Address(token_address), Uint256(BigInteger(amount))),
+//            emptyList()
+//        )
+//
+//        val networkFeeIdxFunction = Function("getNetworkFeeIdxByName", listOf(Uint256(toNetworkHex)), emptyList())
+//        val encodedNetworkFeeIdxFunction = FunctionEncoder.encode(networkFeeIdxFunction)
+//        val networkFeeIdxResponse = web3j.ethCall(
+//            Transaction.createEthCallTransaction(null, erc20BridgeConfigContractAddress, encodedNetworkFeeIdxFunction),
+//            DefaultBlockParameterName.LATEST
+//        ).send()
+//
+//        val networkFeeIdx = BigInteger(networkFeeIdxResponse.result.replace("0x", ""), 16)
+//
+//        val networkFeeFunction = Function("getNetworkFeeByIdx", listOf(Uint32(networkFeeIdx)), emptyList())
+//        val encodedNetworkFeeFunction = FunctionEncoder.encode(networkFeeFunction)
+//        val networkFeeResponse = web3j.ethCall(
+//            Transaction.createEthCallTransaction(null, erc20BridgeConfigContractAddress, encodedNetworkFeeFunction),
+//            DefaultBlockParameterName.LATEST
+//        ).send()
+//
+//        // Assuming each value is of length 64 characters (32 bytes, which is standard for Ethereum)
+////        val networkHex = networkFeeResponse.result.substring(2, 66)
+//        val tokenFeeHex = networkFeeResponse.result.substring(66, 130)
+////        val nftFeeHex = networkFeeResponse.result.substring(130, 194)
+////        val regFeeHex = networkFeeResponse.result.substring(194, 258)
+//
+////        val network = String(BigInteger(networkHex, 16).toByteArray())
+//        val tokenFee = BigInteger(tokenFeeHex, 16)
+////        val nftFee = BigInteger(nftFeeHex, 16)
+////        val regFee = BigInteger(regFeeHex, 16)
+//
+//        println("tokenFee: $tokenFee")
+//
+//        val encodedFunction = FunctionEncoder.encode(function)
+//
+//        val nonce = web3j.ethGetTransactionCount(fromAddress, DefaultBlockParameterName.PENDING)
+//            .sendAsync()
+//            .get()
+//            .transactionCount
+//
+//        val chainId = web3j.ethChainId().sendAsync().get().chainId.toLong()
+//
+//        val tx =
+//            if (network == "bnb" || network == "bnbTest") {
+//                RawTransaction.createTransaction(
+//                    nonce,
+//                    getEstimateGasAsync(network, "baseFee"), // Add 20% to the gas price
+//                    BigInteger.valueOf(200000), // Add 20% to the gas limit
+//                    erc20BridgeContractAddress,
+//                    encodedFunction
+//                )
+//            } else {
+//                RawTransaction.createTransaction(
+//                    chainId,
+//                    nonce,
+//                    BigInteger.valueOf(200000), // Add 20% to the gas limit
+//                    erc20BridgeContractAddress,
+//                    tokenFee, // value
+//                    encodedFunction,
+//                    BigInteger("1000000000"), // 35 Gwei maxPriorityFeePerGas
+//                    getEstimateGasAsync(network, "baseFee") // Add 20% to the gas price
+//                )
+//            }
+//        val signedMessage = TransactionEncoder.signMessage(tx, credentials)
+//        val signedTx = Numeric.toHexString(signedMessage)
+//
+//        val txHash = web3j.ethSendRawTransaction(signedTx).sendAsync().get().transactionHash
+//        if(txHash != null) {
+//            jsonData.put("result", "OK")
+//            jsonData.put("transactionHash", txHash)
+//        } else {
+//            jsonData.put("result", "FAIL")
+//            jsonData.put("error", "insufficient funds")
+//        }
+//    } catch (e: Exception) {
+//        jsonData.put("result", "FAIL")
+//        jsonData.put("error", e.message)
+//    }
+//}
