@@ -1,15 +1,6 @@
 package com.example.android_sdk
 
-//import com.google.gson.Gson
-//import com.google.gson.JsonArray
-//import com.google.gson.JsonObject
-//import com.google.gson.JsonParser
-//import com.google.gson.reflect.TypeToken
-//import okhttp3.OkHttpClient
-//import okhttp3.Request
-//import okhttp3.RequestBody
 import android.annotation.SuppressLint
-import getAccountInfoAsync
 import kotlinx.coroutines.*
 import org.json.JSONArray
 import org.json.JSONObject

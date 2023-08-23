@@ -1,4 +1,5 @@
-import com.example.android_sdk.*
+package com.example.android_sdk
+
 import kotlinx.coroutines.*
 import org.apache.commons.lang3.RandomUtils
 import org.json.JSONArray

@@ -5,7 +5,6 @@ import android.content.Context
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.coroutines.*
-import signMessage
 
 // Application에서 Context를 가져올 수 있도록 구현
 class MyContext : Application() {

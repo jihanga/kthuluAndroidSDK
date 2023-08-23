@@ -1,9 +1,7 @@
 package com.example.android_sdk
 
 import android.content.Context
-import getTokenInfoAsync
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import org.web3j.abi.FunctionEncoder
 import org.web3j.abi.FunctionReturnDecoder
@@ -12,7 +10,6 @@ import org.web3j.abi.datatypes.Address
 import org.web3j.abi.datatypes.DynamicArray
 import org.web3j.abi.datatypes.DynamicBytes
 import org.web3j.abi.datatypes.Function
-import org.web3j.abi.datatypes.Type
 import org.web3j.abi.datatypes.Utf8String
 import org.web3j.abi.datatypes.generated.Uint256
 import org.web3j.abi.datatypes.generated.Uint8
@@ -35,7 +32,7 @@ import java.util.Base64
 import javax.crypto.Cipher
 
 var rpcUrl ="";
-var erc20DeployContractAddress = "";
+var erc20BridgeContractAddress = "";
 var erc721DeployContractAddress = "";
 var erc1155DeployContractAddress = "";
 
@@ -51,10 +48,10 @@ fun networkSettings(network: String) {
         "tbnb" -> "https://data-seed-prebsc-1-s1.binance.org:8545"
         else -> throw IllegalArgumentException("Invalid main network type")
     }
-    erc20DeployContractAddress = when (network) {
+    erc20BridgeContractAddress = when (network) {
         "ethereum" -> ""
         "cypress" -> ""
-        "polygon" -> "0x96856126a6bb4870cDD3e179004CD18cEf569044"
+        "polygon" -> "0x7362fa30ada8ccf2130017f2a8f0b6be78aa38de"
         "bnb" -> ""
         "goerli" -> "0xc11735Ce3c155E755bC9839A5B5d06dEa0482306"
         "baobab" -> "0x808ee7147d91eae0f658164248402ac380eb5f17"
@@ -76,7 +73,7 @@ fun networkSettings(network: String) {
     erc1155DeployContractAddress = when (network) {
         "ethereum" -> ""
         "cypress" -> ""
-        "polygon" -> "0x7E055Cb85FBE64da619865Df8a392d12f009aD81"
+        "polygon" -> "0xf643a4fb01cbbfb561cc906c1f37d5718ef3bba3"
         "bnb" -> ""
         "goerli" -> "0xFEA394a312369b7772513cF856ce4424C1756F2C"
         "baobab" -> "0x96856126a6bb4870cdd3e179004cd18cef569044"
@@ -250,8 +247,8 @@ suspend fun getEstimateGasAsync(
         "deployERC20" ->
             if (name != null && symbol != null && fromAddress != null && tokenAmount != null) {
                 val function = Function(
-                    "deployedERC20",
-                    listOf(Utf8String(name), Utf8String(symbol), Uint256(BigInteger(tokenAmount)), Address(fromAddress)),
+                    "deployWrapped20",
+                    listOf(Utf8String(name), Utf8String(symbol), Uint8(BigInteger("18")), Uint256(BigInteger(tokenAmount))),
                     emptyList()
                 )
                 val encodedFunction = FunctionEncoder.encode(function)
@@ -262,7 +259,31 @@ suspend fun getEstimateGasAsync(
                             BigInteger.ONE,
                             gasPrice,
                             BigInteger.ZERO, // temporary gasLimit
-                            erc20DeployContractAddress,
+                            erc20BridgeContractAddress,
+                            encodedFunction // data
+                        )
+                    ).send().amountUsed
+                } catch (ex: Exception) {
+                    // Handle the exception appropriately
+                    result = BigInteger.ZERO
+                }
+            }
+        "bridgeToken" ->
+            if (fromAddress != null && tokenAmount != null) {
+                val function = Function(
+                    "moveFromETHER",
+                    listOf(Uint256("KLAYTNs".toBigInteger())),
+                    emptyList()
+                )
+                val encodedFunction = FunctionEncoder.encode(function)
+                try {
+                    result = web3.ethEstimateGas(
+                        Transaction.createFunctionCallTransaction(
+                            fromAddress,
+                            BigInteger.ONE,
+                            gasPrice,
+                            BigInteger.ZERO, // temporary gasLimit
+                            erc20BridgeContractAddress,
                             encodedFunction // data
                         )
                     ).send().amountUsed
@@ -590,4 +611,9 @@ suspend fun getEstimateGasAsync(
             }
     }
     BigDecimal(result).multiply(BigDecimal(1.2)).setScale(0, RoundingMode.DOWN).toBigInteger()
+}
+
+fun textToHex(text: String): String {
+    if (text.isEmpty()) return "0x00"
+    return "0x" + text.map { it.toInt().toString(16).padStart(2, '0') }.joinToString("")
 }

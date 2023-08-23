@@ -1,7 +1,6 @@
 package com.example.android_sdk
 
 import java.sql.*
-import java.util.*
 
 object ConfigHolder {
     var databaseUrl: String? = null

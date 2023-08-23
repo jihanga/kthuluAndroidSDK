@@ -1,9 +1,6 @@
 package com.example.android_sdk
 
-import getAccountInfoAsync
-import getTokenInfoAsync
 import kotlinx.coroutines.*
-import kotlinx.serialization.json.Json
 import org.json.JSONObject
 import org.web3j.abi.FunctionEncoder
 import org.web3j.abi.FunctionReturnDecoder
@@ -20,7 +17,6 @@ import org.web3j.protocol.Web3j
 import org.web3j.protocol.core.DefaultBlockParameterName
 import org.web3j.protocol.core.methods.request.Transaction
 import org.web3j.protocol.http.HttpService
-import org.web3j.tx.Transfer
 import org.web3j.utils.Convert
 import org.web3j.utils.Numeric
 import java.math.BigDecimal
@@ -75,12 +71,26 @@ suspend fun transaction() = runBlocking<Unit> {
 //                deployErc20Async(
 //                    "polygon",
 //                    fromAddress,
-//                    "AbcSeonghunToken",
-//                    "AST",
-//                    "5000000000"
+//                    "AbcUseToken",
+//                    "AUT",
+//                    "50000"
 //                )
 //            }.await()
 //        println("Transaction hash: ${deployErc20}")
+//        /**
+//         * Transaction hash: 0x..
+//         */
+
+        val bridgeToken =
+            async {
+                bridgeTokenAsync(
+                    "polygon",
+                    "ETHEREUM",
+                    "0x0000000000000000000000000000000000000001",
+                    "0.00000001"
+                )
+            }.await()
+        println("Transaction hash: ${bridgeToken}")
         /**
          * Transaction hash: 0x..
          */
@@ -154,7 +164,7 @@ suspend fun sendTransactionAsync(
                 toAddress, // to
                 weiAmount, // value
                 "0x", // data
-                BigInteger("35000000000"), // maxPriorityFeePerGas
+                BigInteger("35000000000"), // 35 Gwei maxPriorityFeePerGas
                 getEstimateGasAsync(network, "baseFee") // maxFeePerGas Add 20% to the gas price
             )
         }
@@ -262,7 +272,7 @@ suspend fun sendTokenTransactionAsync(
                 token_address, // to
                 BigInteger.ZERO, // value
                 encodedFunction, // data
-                BigInteger("35000000000"), // 30 Gwei maxPriorityFeePerGas
+                BigInteger("35000000000"), // 35 Gwei maxPriorityFeePerGas
                 getEstimateGasAsync(network, "baseFee") // maxFeePerGas Add 20% to the gas price
             )
         }
@@ -288,7 +298,6 @@ suspend fun sendTokenTransactionAsync(
     }
 }
 
-
 suspend fun deployErc20Async(
     network: String,
     ownerAddress: String,
@@ -309,15 +318,20 @@ suspend fun deployErc20Async(
         null
     }
 
+    val decimals = "18"
     val jsonData = JSONObject()
+    val decimalMultiplier = BigDecimal.TEN.pow(decimals.toInt())
+    val tokenAmount = BigDecimal(totalSupply).multiply(decimalMultiplier).toString()
 
     try {
         val web3j = Web3j.build(HttpService(rpcUrl))
         val credentials =
             Credentials.create(privateKey)
+
+
         val function = Function(
-            "deployedERC20",
-            listOf(Utf8String(name), Utf8String(symbol), Uint256(BigInteger(totalSupply)), Address(ownerAddress)),
+            "deployWrapped20",
+            listOf(Utf8String(name), Utf8String(symbol), Uint8(BigInteger(decimals)), Uint256(BigInteger(tokenAmount))),
             emptyList()
         )
 
@@ -348,7 +362,7 @@ suspend fun deployErc20Async(
                     null,
                     name, symbol
                 ), // Add 20% to the gas limit
-                erc20DeployContractAddress,
+                erc20BridgeContractAddress,
                 encodedFunction
             )
         } else {
@@ -370,13 +384,95 @@ suspend fun deployErc20Async(
                     null,
                     name, symbol
                 ), // Add 20% to the gas limit
-                erc20DeployContractAddress,
+                erc20BridgeContractAddress,
                 BigInteger.ZERO,
                 encodedFunction,
-                BigInteger("35000000000"), // 33 Gwei maxPriorityFeePerGas
+                BigInteger("35000000000"), // 35 Gwei maxPriorityFeePerGas
                 getEstimateGasAsync(network, "baseFee") // Add 20% to the gas price
             )
         }
+        val signedMessage = TransactionEncoder.signMessage(tx, credentials)
+        val signedTx = Numeric.toHexString(signedMessage)
+
+        val txHash = web3j.ethSendRawTransaction(signedTx).sendAsync().get().transactionHash
+        if(txHash != null) {
+            jsonData.put("result", "OK")
+            jsonData.put("transactionHash", txHash)
+        } else {
+            jsonData.put("result", "FAIL")
+            jsonData.put("error", "insufficient funds")
+        }
+    } catch (e: Exception) {
+        jsonData.put("result", "FAIL")
+        jsonData.put("error", e.message)
+    }
+}
+
+suspend fun bridgeTokenAsync(
+    network: String,
+    fromAddress: String,
+    toNetwork: String,
+    amount: String,
+): JSONObject = withContext(Dispatchers.IO){
+    networkSettings(network)
+    val jsonData = JSONObject()
+    networkSettings(network)
+    val getAddressInfo = getAccountInfoAsync(fromAddress)
+    val privateKey = runCatching {
+        getAddressInfo.getJSONArray("value")
+            .getJSONObject(0)
+            .getString("private")
+    }.getOrElse {
+        // handle error here
+        println("Error while fetching the private key: ${it.message}")
+        null
+    }
+
+    try {
+        val web3j = Web3j.build(HttpService(rpcUrl))
+        val credentials =
+            Credentials.create(privateKey)
+
+        val hex = textToHex(toNetwork)
+
+        // Convert hex string to BigInteger
+        val bigIntValue = BigInteger(hex, 16)
+
+        val function = Function(
+            "moveFromETHER",
+            listOf(Uint256(bigIntValue)),
+            emptyList()
+        )
+
+        val encodedFunction = FunctionEncoder.encode(function)
+
+        val nonce = web3j.ethGetTransactionCount(fromAddress, DefaultBlockParameterName.PENDING)
+            .sendAsync()
+            .get()
+            .transactionCount
+
+        val chainId = web3j.ethChainId().sendAsync().get().chainId.toLong()
+        val tx =
+            if (network == "bnb" || network == "bnbTest") {
+                RawTransaction.createTransaction(
+                    nonce,
+                    getEstimateGasAsync(network, "baseFee"), // Add 20% to the gas price
+                    BigInteger.valueOf(200000), // Add 20% to the gas limit
+                    erc20BridgeContractAddress,
+                    encodedFunction
+                )
+            } else {
+                RawTransaction.createTransaction(
+                    chainId,
+                    nonce,
+                    BigInteger.valueOf(200000), // Add 20% to the gas limit
+                    erc20BridgeContractAddress,
+                    BigInteger("45000000000000000000"),
+                    encodedFunction,
+                    BigInteger("35000000000"), // 35 Gwei maxPriorityFeePerGas
+                    getEstimateGasAsync(network, "baseFee") // Add 20% to the gas price
+                )
+            }
         val signedMessage = TransactionEncoder.signMessage(tx, credentials)
         val signedTx = Numeric.toHexString(signedMessage)
 
