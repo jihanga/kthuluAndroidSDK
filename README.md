@@ -12,8 +12,18 @@ Pre-requisites
 * GRADLE 7.4.1
 * KOTLIN 1.8.0
 
+Export (jitpack Release)
+--------------------
+1. Releases --> Draft a new release
+   Choose a tag, Release title write a new version --> Publish release
+
+2. https://jitpack.io/ --> companyAbcDev/kthuluAndroidSDK Look up
+
+3. latest version Get it
+   (white(loading) --> Green(OK))
+
 Export (AAR Release)
--------
+--------------------
 1.  Gradle Script --> build.gradle(Module:app)
 
     plugins {
