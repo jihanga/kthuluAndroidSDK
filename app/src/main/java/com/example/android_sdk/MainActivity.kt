@@ -16,6 +16,10 @@ class MyContext : Application() {
     companion object {
         lateinit var context: Context
     }
+
+    fun setContext(androidContext: Context){
+        context = androidContext
+    }
 }
 
 class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
